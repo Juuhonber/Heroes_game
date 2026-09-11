@@ -1,0 +1,21 @@
+{
+  "name": "heroes-messupeli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HEROES-allianssin messupeli: 2D-sivuttaisvierivä automaattijuoksija selaimessa.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "assets": "node tools/build-map.mjs && node tools/generate-sprites.mjs",
+    "dev": "npm run assets && vite",
+    "build": "npm run assets && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "topojson-client": "^3.1.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.14",
+    "world-atlas": "^2.0.2"
+  }
+}

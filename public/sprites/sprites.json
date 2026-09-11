@@ -1,0 +1,41 @@
+{
+  "note": "Ruudut luetaan riveittäin vasemmalta oikealle. frameWidth/-Height ovat lähdekuvan pikseleitä.",
+  "clips": {
+    "idle": {
+      "src": "sprites/mascot_idle.svg",
+      "frameWidth": 320,
+      "frameHeight": 320,
+      "columns": 2,
+      "frames": 4,
+      "fps": 5,
+      "loop": true
+    },
+    "run": {
+      "src": "sprites/mascot_run.svg",
+      "frameWidth": 320,
+      "frameHeight": 320,
+      "columns": 4,
+      "frames": 8,
+      "fps": 15,
+      "loop": true
+    },
+    "jump": {
+      "src": "sprites/mascot_jump.svg",
+      "frameWidth": 320,
+      "frameHeight": 320,
+      "columns": 2,
+      "frames": 2,
+      "fps": 6,
+      "loop": false
+    },
+    "hurt": {
+      "src": "sprites/mascot_hurt.svg",
+      "frameWidth": 320,
+      "frameHeight": 320,
+      "columns": 2,
+      "frames": 2,
+      "fps": 8,
+      "loop": false
+    }
+  }
+}

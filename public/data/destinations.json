@@ -1,0 +1,322 @@
+{
+  "alliance": {
+    "name": "HEROES",
+    "longName": {
+      "fi": "Higher Education for Resilience-Oriented and Empowered Societies",
+      "en": "Higher Education for Resilience-Oriented and Empowered Societies"
+    },
+    "facts": {
+      "fi": "Yhdeksän ammatillisesti suuntautunutta korkeakoulua yhdeksästä maasta. Euroopan komissio hyväksyi allianssin heinäkuussa 2024.",
+      "en": "Nine practice-oriented higher education institutions from nine countries. The European Commission selected the alliance in July 2024."
+    },
+    "source": "heroesuniversity.eu"
+  },
+  "destinations": [
+    {
+      "id": "seamk",
+      "name": "SeAMK",
+      "longName": {
+        "fi": "Seinäjoen ammattikorkeakoulu",
+        "en": "Seinäjoki University of Applied Sciences"
+      },
+      "city": "Seinäjoki",
+      "country": {
+        "fi": "Suomi",
+        "en": "Finland"
+      },
+      "lat": 62.788,
+      "lon": 22.842,
+      "strength": "innovation",
+      "fact": {
+        "fi": "Noin 6 000 opiskelijaa yhdellä kampuksella, ja noin 15 % tutkinto-opiskelijoista on kansainvälisiä.",
+        "en": "Around 6,000 students on a single campus, with roughly 15% of degree students coming from abroad."
+      },
+      "source": "seamk.fi",
+      "terrain": "forest",
+      "theme": {
+        "skyTop": "#0b3a4a",
+        "skyBottom": "#2e8ba0",
+        "far": "#16505c",
+        "mid": "#0f6b63",
+        "near": "#0a4f4a",
+        "ground": "#12766a",
+        "groundDark": "#0a4b44",
+        "accent": "#f2e85c"
+      },
+      "goalDistance": 560,
+      "obstacleDensity": 1
+    },
+    {
+      "id": "thomasmore",
+      "name": "Thomas More",
+      "longName": {
+        "fi": "Thomas More University of Applied Sciences",
+        "en": "Thomas More University of Applied Sciences"
+      },
+      "city": "Mechelen",
+      "country": {
+        "fi": "Belgia",
+        "en": "Belgium"
+      },
+      "lat": 51.026,
+      "lon": 4.478,
+      "strength": "community",
+      "fact": {
+        "fi": "Flanderin suurin ammattikorkeakoulu: yli 21 000 opiskelijaa ja kampuksia useassa kaupungissa.",
+        "en": "The largest university of applied sciences in Flanders: over 21,000 students across campuses in several cities."
+      },
+      "source": "thomasmore.be",
+      "terrain": "city",
+      "theme": {
+        "skyTop": "#2a1c4a",
+        "skyBottom": "#8a5bb0",
+        "far": "#3d2a63",
+        "mid": "#4b3577",
+        "near": "#2c1e4d",
+        "ground": "#3a2a5e",
+        "groundDark": "#241640",
+        "accent": "#ffd166"
+      },
+      "goalDistance": 600,
+      "obstacleDensity": 1.05
+    },
+    {
+      "id": "fontys",
+      "name": "Fontys",
+      "longName": {
+        "fi": "Fontys University of Applied Sciences",
+        "en": "Fontys University of Applied Sciences"
+      },
+      "city": "Eindhoven",
+      "country": {
+        "fi": "Alankomaat",
+        "en": "Netherlands"
+      },
+      "lat": 51.441,
+      "lon": 5.478,
+      "strength": "digital",
+      "fact": {
+        "fi": "Yli 44 000 opiskelijaa tekee Fontysista yhden Alankomaiden suurimmista ammattikorkeakouluista.",
+        "en": "With over 44,000 students, Fontys is one of the largest universities of applied sciences in the Netherlands."
+      },
+      "source": "fontys.nl",
+      "terrain": "city",
+      "theme": {
+        "skyTop": "#0d2440",
+        "skyBottom": "#2f6ea8",
+        "far": "#173a5c",
+        "mid": "#1d4f74",
+        "near": "#122c45",
+        "ground": "#1b4a66",
+        "groundDark": "#0e2c3e",
+        "accent": "#6fe3ff"
+      },
+      "goalDistance": 620,
+      "obstacleDensity": 1.1
+    },
+    {
+      "id": "ucn",
+      "name": "UCN",
+      "longName": {
+        "fi": "University College of Northern Denmark",
+        "en": "University College of Northern Denmark"
+      },
+      "city": "Aalborg",
+      "country": {
+        "fi": "Tanska",
+        "en": "Denmark"
+      },
+      "lat": 57.048,
+      "lon": 9.921,
+      "strength": "community",
+      "fact": {
+        "fi": "Noin 8 500 opiskelijaa ja 870 työntekijää. Tuhat opiskelijaa tulee yli 40 maasta.",
+        "en": "Around 8,500 students and 870 staff. A thousand of the students come from more than 40 countries."
+      },
+      "source": "ucn.dk",
+      "terrain": "coast",
+      "theme": {
+        "skyTop": "#123049",
+        "skyBottom": "#57a8c4",
+        "far": "#1d5a70",
+        "mid": "#2a7f8c",
+        "near": "#164a57",
+        "ground": "#c9b183",
+        "groundDark": "#8f7a55",
+        "accent": "#ffe9a8"
+      },
+      "goalDistance": 540,
+      "obstacleDensity": 0.95
+    },
+    {
+      "id": "ipbeja",
+      "name": "IPBeja",
+      "longName": {
+        "fi": "Instituto Politécnico de Beja",
+        "en": "Instituto Politécnico de Beja"
+      },
+      "city": "Beja",
+      "country": {
+        "fi": "Portugali",
+        "en": "Portugal"
+      },
+      "lat": 38.015,
+      "lon": -7.863,
+      "strength": "sustainability",
+      "fact": {
+        "fi": "Perustettu 1979. Noin 3 500 opiskelijaa Alentejon maatalousmaisemassa.",
+        "en": "Founded in 1979. Around 3,500 students in the farmland of the Alentejo region."
+      },
+      "source": "ipbeja.pt",
+      "terrain": "fields",
+      "theme": {
+        "skyTop": "#2b3a6b",
+        "skyBottom": "#e9a05a",
+        "far": "#8a6a4e",
+        "mid": "#a9813f",
+        "near": "#6d4f30",
+        "ground": "#c08a45",
+        "groundDark": "#84592a",
+        "accent": "#ffd36e"
+      },
+      "goalDistance": 580,
+      "obstacleDensity": 1
+    },
+    {
+      "id": "thdeg",
+      "name": "DIT",
+      "longName": {
+        "fi": "Deggendorf Institute of Technology",
+        "en": "Deggendorf Institute of Technology"
+      },
+      "city": "Deggendorf",
+      "country": {
+        "fi": "Saksa",
+        "en": "Germany"
+      },
+      "lat": 48.836,
+      "lon": 12.957,
+      "strength": "digital",
+      "fact": {
+        "fi": "Noin 9 000 opiskelijaa ja yli 100 kansallisuutta. Kampukset Deggendorfissa, Pfarrkirchenissä ja Chamissa.",
+        "en": "Around 9,000 students and over 100 nationalities, on campuses in Deggendorf, Pfarrkirchen and Cham."
+      },
+      "source": "th-deg.de",
+      "terrain": "hills",
+      "theme": {
+        "skyTop": "#16293f",
+        "skyBottom": "#5f8fb5",
+        "far": "#2c4a63",
+        "mid": "#2f6350",
+        "near": "#1d4335",
+        "ground": "#2f7a52",
+        "groundDark": "#1c4c33",
+        "accent": "#9ef0b4"
+      },
+      "goalDistance": 640,
+      "obstacleDensity": 1.15
+    },
+    {
+      "id": "halmstad",
+      "name": "Halmstad",
+      "longName": {
+        "fi": "Högskolan i Halmstad",
+        "en": "Halmstad University"
+      },
+      "city": "Halmstad",
+      "country": {
+        "fi": "Ruotsi",
+        "en": "Sweden"
+      },
+      "lat": 56.665,
+      "lon": 12.869,
+      "strength": "innovation",
+      "fact": {
+        "fi": "Perustettu 1983. Noin 13 000 opiskelijaa 80 maasta, kampus kahdessa kaupungissa.",
+        "en": "Founded in 1983. Around 13,000 students from 80 countries, with campuses in two cities."
+      },
+      "source": "hh.se",
+      "terrain": "coast",
+      "theme": {
+        "skyTop": "#0e2c46",
+        "skyBottom": "#4aa3c9",
+        "far": "#1b5273",
+        "mid": "#237a8c",
+        "near": "#123f52",
+        "ground": "#e0c98f",
+        "groundDark": "#a08a5c",
+        "accent": "#ffe6a0"
+      },
+      "goalDistance": 600,
+      "obstacleDensity": 1.05
+    },
+    {
+      "id": "viko",
+      "name": "VIKO",
+      "longName": {
+        "fi": "Vilniaus kolegija / Higher Education Institution",
+        "en": "Vilniaus kolegija / Higher Education Institution"
+      },
+      "city": "Vilnius",
+      "country": {
+        "fi": "Liettua",
+        "en": "Lithuania"
+      },
+      "lat": 54.687,
+      "lon": 25.28,
+      "strength": "community",
+      "fact": {
+        "fi": "Perustettu 2000. Noin 6 500 opiskelijaa yhdeksässä tiedekunnassa.",
+        "en": "Founded in 2000. Around 6,500 students across nine faculties."
+      },
+      "source": "viko.lt",
+      "terrain": "city",
+      "theme": {
+        "skyTop": "#3a1d34",
+        "skyBottom": "#c46a6a",
+        "far": "#5c2f45",
+        "mid": "#7a4450",
+        "near": "#3f2033",
+        "ground": "#6b4038",
+        "groundDark": "#432622",
+        "accent": "#ffb4a2"
+      },
+      "goalDistance": 620,
+      "obstacleDensity": 1.1
+    },
+    {
+      "id": "mendelu",
+      "name": "MENDELU",
+      "longName": {
+        "fi": "Mendelova univerzita v Brně",
+        "en": "Mendel University in Brno"
+      },
+      "city": "Brno",
+      "country": {
+        "fi": "Tšekki",
+        "en": "Czechia"
+      },
+      "lat": 49.21,
+      "lon": 16.614,
+      "strength": "sustainability",
+      "fact": {
+        "fi": "Perustettu 1919. Noin 9 700 opiskelijaa; painopisteinä maatalous, metsä ja aluekehitys.",
+        "en": "Founded in 1919. Around 9,700 students, focused on agriculture, forestry and regional development."
+      },
+      "source": "mendelu.cz",
+      "terrain": "forest",
+      "theme": {
+        "skyTop": "#1a2f22",
+        "skyBottom": "#6aa06a",
+        "far": "#2c4a33",
+        "mid": "#39603c",
+        "near": "#22402a",
+        "ground": "#456b3c",
+        "groundDark": "#2a4526",
+        "accent": "#d7f06a"
+      },
+      "goalDistance": 660,
+      "obstacleDensity": 1.2
+    }
+  ]
+}

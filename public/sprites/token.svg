@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+<title>HEROES token</title>
+<g transform="translate(6 30)">
+    <g stroke="#08130f" stroke-width="3" stroke-linejoin="round">
+      <path d="M0 12 L21.08 -9.08 L83.08 -9.08 L62 12 Z" fill="#c9e35a"/>
+      <rect x="0" y="12" width="62" height="38.44" rx="4" fill="#19a08c"/>
+      <path d="M62 12 L83.08 -9.08 L83.08 29.36 L62 50.44 Z" fill="#0f7c6c"/>
+    </g></g>
+</svg>
