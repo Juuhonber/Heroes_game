@@ -12,5 +12,7 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    // Avaa pelin selaimeen automaattisesti, kun `npm run dev` käynnistyy.
+    open: true,
   },
 });

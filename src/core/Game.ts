@@ -3,6 +3,7 @@ import type { GameState } from './GameState';
 import type { Clip } from './Animator';
 import type { Alliance, Destination } from '../data/destinations';
 import type { EuropeMap } from '../data/europe';
+import type { CampusPhotos } from '../data/campus';
 import { clamp } from './math';
 
 /** Virtuaaliresoluutio: kaikki piirto tehdään tässä koordinaatistossa. */
@@ -20,6 +21,7 @@ export interface GameAssets {
   destinations: Destination[];
   alliance: Alliance;
   europe: EuropeMap;
+  campus: CampusPhotos;
 }
 
 interface Transition {
@@ -35,6 +37,11 @@ export class Game {
   readonly input: Input;
   /** Kuluva aika sekunteina pelin käynnistyksestä. */
   time = 0;
+  /**
+   * Tämän pelaajan suorittamat kohteet. Vain muistissa: nollautuu, kun peli
+   * palaa joutoajan jälkeen alkuun, eikä mitään tallenneta.
+   */
+  readonly stamps = new Set<string>();
 
   private states = new Map<string, GameState>();
   private current: GameState | null = null;
@@ -132,6 +139,7 @@ export class Game {
       return;
     }
     this.input.resetIdle();
+    this.stamps.clear();
     if (this.current?.name !== 'map') this.transitionTo('map', { idle: true });
   }
 

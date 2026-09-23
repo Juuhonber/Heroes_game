@@ -24,3 +24,24 @@ Kohteille merkitty vahvuusalue (yhteisöllisyys, innovaatiot, kestävyys,
 digitaalisuus) on pelin sisällöllinen kehys ja teemaväri. Se ei ole allianssin
 virallinen työnjako, ja sen voi vaihtaa vapaasti tiedostossa
 `public/data/destinations.json`.
+
+## Maisemat ja maamerkit
+
+Jokaisen radan taustalla on kampuskaupungin tunnistettava maamerkki
+tyyliteltynä siluettina. Siluetit ovat pelin omaa grafiikkaa, eivät
+kuvia.
+
+| Kohde | Maamerkki | Maisema |
+| --- | --- | --- |
+| SeAMK, Seinäjoki | Lakeuden Risti (Alvar Aalto) | kuusikko, lakeuden ladot, koivut |
+| Thomas More, Mechelen | Pyhän Rumoldin torni | kaupunki, flaamilaiset porraspäädyt |
+| Fontys, Eindhoven | Evoluon | moderni kaupunki |
+| UCN, Aalborg | Aalborgin torni | Limvuono, kaupunki |
+| IPBeja, Beja | Bejan linnan päätorni | pellot, kalkitut talot, oliivipuut |
+| DIT, Deggendorf | baijerilainen sipulikupolitorni | Baijerin metsän vaarat, kuusikko |
+| Halmstad | Halmstadin linna | meri, dyynit, rantametsä |
+| VIKO, Vilna | Gediminaksen torni | kukkulat, vanha kaupunki |
+| MENDELU, Brno | Pietarin ja Paavalin katedraali | kukkulat, lehtimetsä, viinitarhat |
+
+Deggendorfin tornisiluetti on yleinen baijerilainen barokkitorni, ei tietyn
+kirkon kuva; siksi pelin esittelyteksti puhuu Baijerin metsän vaaroista.

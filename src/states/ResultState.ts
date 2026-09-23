@@ -82,9 +82,14 @@ export class ResultState implements GameState {
     else this.game.transitionTo('map');
   }
 
+  /** Seuraava kohde listajärjestyksessä, leimaamattomat ensin. */
   private nextId(): string {
     const list = this.game.assets.destinations;
     const index = list.findIndex((d) => d.id === this.destination.id);
+    for (let step = 1; step <= list.length; step++) {
+      const candidate = list[(index + step) % list.length]!;
+      if (!this.game.stamps.has(candidate.id)) return candidate.id;
+    }
     return list[(index + 1) % list.length]!.id;
   }
 
@@ -123,6 +128,8 @@ export class ResultState implements GameState {
     ctx.fillStyle = PALETTE.ink;
     ctx.font = font('display', 58);
     ctx.fillText(success ? strings.success : strings.fail, CARD.x + 52, CARD.y + 66);
+    const titleW = ctx.measureText(success ? strings.success : strings.fail).width;
+    this.drawStamps(ctx, CARD.x + 52 + titleW + 36, CARD.y + 66);
 
     ctx.textAlign = 'right';
     ctx.font = font('bold', 34);
@@ -177,16 +184,41 @@ export class ResultState implements GameState {
 
     ctx.globalAlpha = ease * 0.6;
     ctx.font = font('body', 24);
-    ctx.fillText(
-      `${strings.source}: ${this.destination.source}`,
-      CARD.x + 52,
-      CARD.y + CARD.h - 48,
-    );
+    const photo = this.game.assets.campus.get(this.destination.id);
+    const credit = photo ? `  ·  ${strings.photo}: ${photo.entry.credit}` : '';
+    ctx.fillText(`${strings.source}: ${this.destination.source}${credit}`, CARD.x + 52, CARD.y + CARD.h - 48);
     ctx.globalAlpha = ease;
     ctx.restore();
 
     this.buttons.draw(ctx, this.keyboardMode);
     this.drawIdle(ctx);
+  }
+
+  /** Leimarivi: yksi piste per kohde, suoritetut täytettyinä. */
+  private drawStamps(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+    const strings = t();
+    const list = this.game.assets.destinations;
+    const done = list.filter((d) => this.game.stamps.has(d.id)).length;
+    ctx.save();
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = PALETTE.ink;
+    ctx.font = font('bold', 24);
+    const label = done === list.length ? strings.allStamps : `${strings.stamps} ${done}/${list.length}`;
+    ctx.fillText(label, x, y - 18);
+    list.forEach((d, i) => {
+      ctx.beginPath();
+      ctx.arc(x + 11 + i * 28, y + 16, 10, 0, Math.PI * 2);
+      if (this.game.stamps.has(d.id)) {
+        ctx.fillStyle = PALETTE.ink;
+        ctx.fill();
+      } else {
+        ctx.strokeStyle = 'rgba(4, 32, 29, 0.45)';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+    });
+    ctx.restore();
   }
 
   private drawIdle(ctx: CanvasRenderingContext2D): void {

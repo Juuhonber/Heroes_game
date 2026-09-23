@@ -56,7 +56,7 @@ export class MapState implements GameState {
         (d, i) =>
           new Button({
             id: d.id,
-            label: d.name,
+            label: this.game.stamps.has(d.id) ? `${d.name}  ✓` : d.name,
             sublabel: `${d.city}, ${localized(d.country)} · ${strings.strengths[d.strength]}`,
             x: PANEL.x,
             y: PANEL.y + i * (h + gap),
@@ -177,6 +177,18 @@ export class MapState implements GameState {
     ctx.fillText(strings.tagline, 60 + logoWidth + 32, 86);
     ctx.globalAlpha = 1;
 
+    const done = this.game.stamps.size;
+    if (done > 0) {
+      const total = this.game.assets.destinations.length;
+      ctx.fillStyle = PALETTE.yellow;
+      ctx.font = font('bold', 26);
+      ctx.fillText(
+        done === total ? strings.allStamps : `${strings.stamps} ${done}/${total}`,
+        60,
+        146,
+      );
+    }
+
     ctx.textAlign = 'left';
     ctx.fillStyle = PALETTE.paper;
     ctx.font = font('bold', 34);
@@ -269,6 +281,17 @@ export class MapState implements GameState {
     ctx.strokeStyle = PALETTE.ink;
     ctx.lineWidth = 3;
     ctx.stroke();
+    if (this.game.stamps.has(destination.id)) {
+      ctx.strokeStyle = PALETTE.ink;
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      const r = active ? 12 : 8;
+      ctx.beginPath();
+      ctx.moveTo(p.x - r, p.y);
+      ctx.lineTo(p.x - r * 0.25, p.y + r * 0.7);
+      ctx.lineTo(p.x + r, p.y - r * 0.7);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 

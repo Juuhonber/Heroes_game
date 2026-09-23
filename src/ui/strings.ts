@@ -1,4 +1,5 @@
 import type { Strength } from '../data/destinations';
+import type { PowerKind } from '../game/powers';
 
 export type Lang = 'fi' | 'en';
 
@@ -29,8 +30,15 @@ type Dict = {
   fullscreen: string;
   metres: string;
   strengths: Record<Strength, string>;
+  powers: Record<PowerKind, { name: string; desc: string }>;
+  noCharge: string;
+  tryPower: string;
+  jumpPrompt: string;
+  scenery: string;
+  photo: string;
+  stamps: string;
+  allStamps: string;
   alliance: string;
-  campusPlaceholder: string;
 };
 
 const fi: Dict = {
@@ -52,7 +60,7 @@ const fi: Dict = {
   power: 'Voima',
   powerReady: 'Voima valmiina',
   jumpHint: 'Napsauta tai paina VÄLILYÖNTI = hyppy',
-  powerHint: 'VAIHTO tai hiiren oikea = suojavoima',
+  powerHint: 'Voimanappi, VAIHTO tai hiiren oikea = supervoima',
   startHint: 'Napsauta aloittaaksesi',
   idleWarning: 'Palataan kartalle',
   source: 'Lähde',
@@ -65,8 +73,20 @@ const fi: Dict = {
     sustainability: 'Kestävyys',
     digital: 'Digitaalisuus',
   },
+  powers: {
+    shield: { name: 'Tiimisuoja', desc: 'Murskaa esteet' },
+    rocket: { name: 'Rakettireppu', desc: 'Lennä yli' },
+    grow: { name: 'Kasvuvoima', desc: 'Esteet kasveiksi' },
+    slowmo: { name: 'Hidastus', desc: 'Aika hidastuu' },
+  },
+  noCharge: 'Kerää kuutioita!',
+  tryPower: 'Kokeile supervoimaa!',
+  jumpPrompt: 'HYPPÄÄ!',
+  scenery: 'Maisemassa',
+  photo: 'Kuva',
+  stamps: 'Leimat',
+  allStamps: 'Kaikki kohteet käyty!',
   alliance: 'HEROES-allianssi',
-  campusPlaceholder: 'Kampusnäkymä',
 };
 
 const en: Dict = {
@@ -88,7 +108,7 @@ const en: Dict = {
   power: 'Power',
   powerReady: 'Power ready',
   jumpHint: 'Click or press SPACE = jump',
-  powerHint: 'SHIFT or right click = shield power',
+  powerHint: 'Power button, SHIFT or right click = superpower',
   startHint: 'Click to start',
   idleWarning: 'Returning to the map',
   source: 'Source',
@@ -101,8 +121,20 @@ const en: Dict = {
     sustainability: 'Sustainability',
     digital: 'Digital',
   },
+  powers: {
+    shield: { name: 'Team shield', desc: 'Smash obstacles' },
+    rocket: { name: 'Rocket pack', desc: 'Fly over' },
+    grow: { name: 'Growth power', desc: 'Obstacles into plants' },
+    slowmo: { name: 'Slow motion', desc: 'Time slows down' },
+  },
+  noCharge: 'Collect cubes!',
+  tryPower: 'Try your superpower!',
+  jumpPrompt: 'JUMP!',
+  scenery: 'In the scenery',
+  photo: 'Photo',
+  stamps: 'Stamps',
+  allStamps: 'All destinations visited!',
   alliance: 'HEROES alliance',
-  campusPlaceholder: 'Campus view',
 };
 
 const dicts: Record<Lang, Dict> = { fi, en };

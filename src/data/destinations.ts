@@ -7,7 +7,46 @@ import { assetUrl, loadJson } from '../core/loader';
  */
 export type Strength = 'community' | 'innovation' | 'sustainability' | 'digital';
 
-export type Terrain = 'forest' | 'city' | 'coast' | 'fields' | 'hills';
+/** Taustakerrosten maisematyypit. */
+export type SceneryKind =
+  | 'spruce'
+  | 'birch'
+  | 'deciduous'
+  | 'olive'
+  | 'city'
+  | 'modern'
+  | 'gables'
+  | 'whitehouses'
+  | 'barns'
+  | 'hills'
+  | 'mountains'
+  | 'fields'
+  | 'dunes'
+  | 'sea'
+  | 'vineyard';
+
+/** Kaupungin tunnistettava maamerkki siluettina horisontissa. */
+export type LandmarkKind =
+  | 'lakeudenRisti'
+  | 'rumbold'
+  | 'evoluon'
+  | 'aalborgTower'
+  | 'bejaKeep'
+  | 'onionTower'
+  | 'halmstadCastle'
+  | 'gediminas'
+  | 'petrov';
+
+export interface Scenery {
+  far: SceneryKind;
+  mid: SceneryKind;
+  near: SceneryKind;
+}
+
+export interface Landmark {
+  kind: LandmarkKind;
+  name: Localized;
+}
 
 export interface Localized {
   fi: string;
@@ -36,14 +75,13 @@ export interface Destination {
   strength: Strength;
   fact: Localized;
   source: string;
-  terrain: Terrain;
+  scenery: Scenery;
+  landmark: Landmark;
   theme: Theme;
   /** Radan pituus metreinä. */
   goalDistance: number;
   /** Esteiden tiheyskerroin: 1 = perustaso. */
   obstacleDensity: number;
-  /** Valinnainen kampuskuva kaukataustaksi, polku public-kansiosta. */
-  campusImage?: string;
 }
 
 export interface Alliance {

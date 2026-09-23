@@ -52,6 +52,12 @@ export class Animator {
     this.frame = 0;
   }
 
+  /** Asettaa ruudun suoraan, esimerkiksi hypyn nousu- ja laskuvaiheelle. */
+  setFrame(index: number): void {
+    this.frame = Math.max(0, Math.min(this.clip.sheet.frameCount - 1, index));
+    this.time = 0;
+  }
+
   update(dt: number): void {
     const clip = this.clip;
     this.time += dt;

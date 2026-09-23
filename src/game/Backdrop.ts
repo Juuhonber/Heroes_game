@@ -1,61 +1,70 @@
 import { Rng } from '../core/math';
 import { GROUND_Y } from './constants';
-import type { Destination, Terrain, Theme } from '../data/destinations';
+import type { Destination, SceneryKind, Theme } from '../data/destinations';
+import type { CampusPhoto } from '../data/campus';
 import type { Pit } from './Level';
+import { hash } from './Level';
 import { VIRTUAL_H, VIRTUAL_W } from '../core/Game';
-
-interface Shape {
-  x: number;
-  w: number;
-  h: number;
-  variant: number;
-}
+import { buildShapes, drawLandmark, drawShape } from './scenery';
+import type { Shape } from './scenery';
 
 interface Layer {
+  kind: SceneryKind;
   factor: number;
   color: string;
   /** Ilmaperspektiivi: kaukaiset kerrokset sulautuvat taivaaseen. */
   alpha: number;
   baseY: number;
+  detail: boolean;
   shapes: Shape[];
 }
 
 const TILE = VIRTUAL_W;
+/** Maamerkki liukuu hitaasti: se pysyy näkyvissä koko juoksun ajan. */
+const LANDMARK_FACTOR = 0.07;
+const LANDMARK_START_X = 1320;
 
 /**
- * Taustan kolme rinnakkain vierivää kerrosta. Muodot ovat maastotyypin
- * mukaisia siluetteja, jotka luodaan kerran kohteen siemenestä.
- *
- * Jos kohteelle annetaan campusImage, se piirretään horisonttiin kauimmaksi
- * kerrokseksi. Ilman kuvaa käytetään siluetteja.
+ * Juoksun tausta. Kerrokset ja maamerkki kuvaavat kampuskaupungin maisemaa.
+ * Jos kohteelle on kampuskuva, se korvaa kaukaisimman kerroksen ja
+ * maamerkin, ja lähin kerros jää kuvan eteen syvyyden tuojaksi.
  */
 export class Backdrop {
-  private layers: Layer[];
-  private campus: HTMLImageElement | null = null;
+  private readonly theme: Theme;
+  private readonly layers: Layer[];
+  private photo: CampusPhoto | null = null;
+  private photoFade = 0;
+  private lastTime = 0;
 
-  constructor(
-    private readonly theme: Theme,
-    terrain: Terrain,
-    seed: string,
-    campus: HTMLImageElement | null = null,
-  ) {
-    this.campus = campus;
-    const rng = new Rng(hash(`${seed}:${terrain}`));
+  constructor(private readonly destination: Destination) {
+    this.theme = destination.theme;
+    const rng = new Rng(hash(`${destination.id}:scenery`));
+    const { far, mid, near } = destination.scenery;
     this.layers = [
-      { factor: 0.18, color: theme.far, alpha: 0.68, baseY: GROUND_Y - 40, shapes: build(terrain, 0, rng) },
-      { factor: 0.42, color: theme.mid, alpha: 0.88, baseY: GROUND_Y - 10, shapes: build(terrain, 1, rng) },
-      { factor: 0.72, color: theme.near, alpha: 1, baseY: GROUND_Y + 10, shapes: build(terrain, 2, rng) },
+      layer(far, 0.16, this.theme.far, 0.7, GROUND_Y - 40, false, buildShapes(far, farScale(far), rng, TILE)),
+      layer(mid, 0.4, this.theme.mid, 0.9, GROUND_Y - 8, false, buildShapes(mid, 0.9, rng, TILE)),
+      layer(near, 0.72, this.theme.near, 1, GROUND_Y + 10, true, buildShapes(near, 0.6, rng, TILE)),
     ];
   }
 
+  setPhoto(photo: CampusPhoto): void {
+    this.photo = photo;
+    this.photoFade = 0;
+  }
+
+  get photoCredit(): string | null {
+    return this.photo?.entry.credit ?? null;
+  }
+
   drawSky(ctx: CanvasRenderingContext2D, cameraX: number, time: number): void {
+    const dt = Math.max(0, time - this.lastTime);
+    this.lastTime = time;
     const gradient = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
     gradient.addColorStop(0, this.theme.skyTop);
     gradient.addColorStop(1, this.theme.skyBottom);
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, VIRTUAL_W, GROUND_Y);
 
-    // Aurinko ja kevyet pilvet tuovat syvyyttä ilman lisäaineistoa.
     ctx.save();
     ctx.globalAlpha = 0.5;
     ctx.fillStyle = this.theme.accent;
@@ -74,35 +83,72 @@ export class Backdrop {
     }
     ctx.restore();
 
-    if (this.campus) {
-      const h = 300;
-      const w = (this.campus.width / this.campus.height) * h;
-      ctx.save();
-      ctx.globalAlpha = 0.85;
-      const offset = -((cameraX * 0.12) % w);
-      for (let x = offset - w; x < VIRTUAL_W + w; x += w) {
-        ctx.drawImage(this.campus, x, GROUND_Y - h, w, h);
-      }
-      ctx.restore();
+    if (this.photo) {
+      this.photoFade = Math.min(1, this.photoFade + dt * 1.6);
+      this.drawPhoto(ctx, cameraX);
     }
   }
 
+  /** Kuva peittää taivaan ja panoroi hitaasti juoksun edetessä. */
+  private drawPhoto(ctx: CanvasRenderingContext2D, cameraX: number): void {
+    const photo = this.photo!;
+    const area = { w: VIRTUAL_W, h: GROUND_Y + 20 };
+    const scale = Math.max(area.w / photo.width, area.h / photo.height) * 1.12;
+    const w = photo.width * scale;
+    const h = photo.height * scale;
+    const travel = Math.max(0, w - area.w);
+    const run = this.destination.goalDistance * 20;
+    const x = -travel * Math.min(1, cameraX / run);
+    const y = area.h - h;
+    ctx.save();
+    ctx.globalAlpha = this.photoFade;
+    ctx.drawImage(photo.image, x, y, w, h);
+    // Teeman sävy ja alareunan usva sitovat kuvan pelin värimaailmaan.
+    const tint = ctx.createLinearGradient(0, 0, 0, area.h);
+    tint.addColorStop(0, hexAlpha(this.theme.skyTop, 0.45));
+    tint.addColorStop(0.6, hexAlpha(this.theme.skyTop, 0.1));
+    tint.addColorStop(1, hexAlpha(this.theme.skyBottom, 0.55));
+    ctx.fillStyle = tint;
+    ctx.fillRect(0, 0, area.w, area.h);
+    ctx.restore();
+  }
+
   drawLayers(ctx: CanvasRenderingContext2D, cameraX: number): void {
-    for (const layer of this.layers) {
-      const offset = -((cameraX * layer.factor) % TILE);
-      ctx.save();
-      ctx.globalAlpha = layer.alpha;
-      ctx.fillStyle = layer.color;
-      for (let tile = -1; tile <= 1; tile++) {
-        const ox = offset + tile * TILE;
-        if (ox > VIRTUAL_W || ox + TILE < 0) continue;
+    const photoAlpha = this.photo ? this.photoFade : 0;
+    this.layers.forEach((l, index) => {
+      // Kuvan kanssa kaukainen kerros ja keskikerros väistyvät.
+      const fade = index === 2 ? 1 : 1 - photoAlpha * (index === 0 ? 1 : 0.75);
+      if (fade > 0.01) this.drawLayer(ctx, l, cameraX, fade);
+      if (index === 0 && 1 - photoAlpha > 0.01) {
         ctx.save();
-        ctx.translate(ox, 0);
-        for (const shape of layer.shapes) drawShape(ctx, shape, layer.baseY);
+        ctx.globalAlpha = 0.92 * (1 - photoAlpha);
+        drawLandmark(
+          ctx,
+          this.destination.landmark.kind,
+          LANDMARK_START_X - cameraX * LANDMARK_FACTOR,
+          GROUND_Y - 30,
+          mix(this.theme.mid, this.theme.near),
+          this.theme.skyBottom,
+        );
         ctx.restore();
       }
+    });
+  }
+
+  private drawLayer(ctx: CanvasRenderingContext2D, l: Layer, cameraX: number, fade: number): void {
+    const offset = -((cameraX * l.factor) % TILE);
+    ctx.save();
+    ctx.globalAlpha = l.alpha * fade;
+    ctx.fillStyle = l.color;
+    for (let tile = -1; tile <= 1; tile++) {
+      const ox = offset + tile * TILE;
+      if (ox > VIRTUAL_W || ox + TILE < 0) continue;
+      ctx.save();
+      ctx.translate(ox, 0);
+      for (const shape of l.shapes) drawShape(ctx, l.kind, shape, l.baseY, l.detail);
       ctx.restore();
     }
+    ctx.restore();
   }
 
   drawGround(ctx: CanvasRenderingContext2D, cameraX: number, pits: readonly Pit[]): void {
@@ -123,8 +169,8 @@ export class Backdrop {
     }
     ctx.restore();
 
-    // Kuopat leikataan maasta pois.
     for (const pit of pits) {
+      if (pit.bridged) continue;
       const sx = pit.x - cameraX;
       if (sx > VIRTUAL_W || sx + pit.w < 0) continue;
       const gradient = ctx.createLinearGradient(0, GROUND_Y, 0, VIRTUAL_H);
@@ -139,115 +185,38 @@ export class Backdrop {
   }
 }
 
-function build(terrain: Terrain, layerIndex: number, rng: Rng): Shape[] {
-  const shapes: Shape[] = [];
-  const counts = [7, 11, 9];
-  const count = counts[layerIndex] ?? 9;
-  const scale = [1.35, 0.9, 0.55][layerIndex] ?? 1;
-  for (let i = 0; i < count; i++) {
-    const x = (TILE / count) * i + rng.range(-40, 40);
-    const w = rng.range(110, 260) * scale;
-    let h = rng.range(120, 320) * scale;
-    if (terrain === 'city') h = rng.range(180, 420) * scale;
-    if (terrain === 'fields') h = rng.range(60, 140) * scale;
-    if (terrain === 'coast') h = rng.range(70, 180) * scale;
-    shapes.push({ x, w, h, variant: rng.int(0, 3) });
-  }
-  return shapes.map((s) => ({ ...s, variant: terrainVariant(terrain, s.variant) }));
+function layer(
+  kind: SceneryKind,
+  factor: number,
+  color: string,
+  alpha: number,
+  baseY: number,
+  detail: boolean,
+  shapes: Shape[],
+): Layer {
+  return { kind, factor, color, alpha, baseY, detail, shapes };
 }
 
-/** Muunnetaan maastotyyppi piirtotavan numeroksi. */
-function terrainVariant(terrain: Terrain, roll: number): number {
-  switch (terrain) {
-    case 'forest':
-      return 0;
-    case 'city':
-      return 1;
-    case 'coast':
-      return roll < 2 ? 2 : 3;
-    case 'fields':
-      return 3;
-    case 'hills':
-      return 4;
-    default:
-      return 3;
-  }
-}
-
-function drawShape(ctx: CanvasRenderingContext2D, s: Shape, baseY: number): void {
-  switch (s.variant) {
-    case 0: {
-      // Havupuu
-      const trunk = s.w * 0.12;
-      ctx.fillRect(s.x + s.w / 2 - trunk / 2, baseY - s.h * 0.25, trunk, s.h * 0.3);
-      ctx.beginPath();
-      ctx.moveTo(s.x + s.w / 2, baseY - s.h);
-      ctx.lineTo(s.x + s.w, baseY - s.h * 0.2);
-      ctx.lineTo(s.x, baseY - s.h * 0.2);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    }
-    case 1: {
-      // Rakennus ikkunoineen
-      ctx.fillRect(s.x, baseY - s.h, s.w, s.h);
-      ctx.save();
-      ctx.globalAlpha = 0.22;
-      ctx.fillStyle = '#ffffff';
-      const cols = Math.max(2, Math.floor(s.w / 46));
-      const rows = Math.max(2, Math.floor(s.h / 64));
-      for (let c = 0; c < cols; c++) {
-        for (let r = 0; r < rows; r++) {
-          if ((c * 7 + r * 3) % 4 === 0) continue;
-          ctx.fillRect(s.x + 14 + c * 46, baseY - s.h + 22 + r * 64, 20, 30);
-        }
-      }
-      ctx.restore();
-      break;
-    }
-    case 2: {
-      // Majakka
-      ctx.beginPath();
-      ctx.moveTo(s.x + s.w * 0.3, baseY);
-      ctx.lineTo(s.x + s.w * 0.42, baseY - s.h);
-      ctx.lineTo(s.x + s.w * 0.58, baseY - s.h);
-      ctx.lineTo(s.x + s.w * 0.7, baseY);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillRect(s.x + s.w * 0.36, baseY - s.h - 26, s.w * 0.28, 26);
-      break;
-    }
-    case 3: {
-      // Loiva kumpare
-      ctx.beginPath();
-      ctx.ellipse(s.x + s.w / 2, baseY, s.w / 2, s.h, 0, Math.PI, Math.PI * 2);
-      ctx.fill();
-      break;
-    }
-    default: {
-      // Kukkula
-      ctx.beginPath();
-      ctx.moveTo(s.x, baseY);
-      ctx.lineTo(s.x + s.w * 0.45, baseY - s.h);
-      ctx.lineTo(s.x + s.w * 0.62, baseY - s.h * 0.7);
-      ctx.lineTo(s.x + s.w, baseY);
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
+/** Rakennetut kaukokerrokset pidetään matalina, jotta maamerkki erottuu. */
+function farScale(kind: SceneryKind): number {
+  return kind === 'city' || kind === 'modern' ? 0.95 : 1.3;
 }
 
 const wrap = (value: number, size: number): number => ((value % size) + size) % size;
 
-function hash(text: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
+function parseHex(hex: string): [number, number, number] {
+  const v = hex.replace('#', '');
+  return [0, 2, 4].map((i) => parseInt(v.slice(i, i + 2), 16)) as [number, number, number];
 }
 
-export function backdropFor(destination: Destination, campus: HTMLImageElement | null): Backdrop {
-  return new Backdrop(destination.theme, destination.terrain, destination.id, campus);
+function hexAlpha(hex: string, alpha: number): string {
+  const [r, g, b] = parseHex(hex);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function mix(a: string, b: string): string {
+  const pa = parseHex(a);
+  const pb = parseHex(b);
+  const c = pa.map((v, i) => Math.round((v + pb[i]!) / 2));
+  return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
 }

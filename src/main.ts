@@ -6,6 +6,7 @@ import { assetUrl, loadAll, loadImage, loadJson } from './core/loader';
 import type { SpriteManifest } from './core/loader';
 import { loadContent } from './data/destinations';
 import { loadEurope } from './data/europe';
+import { CampusPhotos } from './data/campus';
 import { MapState } from './states/MapState';
 import { PlayState } from './states/PlayState';
 import { ResultState } from './states/ResultState';
@@ -24,11 +25,13 @@ async function start(): Promise<void> {
   const manifest = await loadJson<SpriteManifest>(assetUrl('sprites/sprites.json'));
 
   const clipNames = Object.keys(manifest.clips);
+  const campus = new CampusPhotos();
   const loaded = await loadAll(
     {
       content: loadContent(),
       europe: loadEurope(),
       token: loadImage(assetUrl('sprites/token.svg')),
+      campus: campus.init(),
       sheets: Promise.all(
         clipNames.map(async (name) => {
           const def = manifest.clips[name]!;
@@ -50,6 +53,7 @@ async function start(): Promise<void> {
     destinations: loaded.content.destinations,
     alliance: loaded.content.alliance,
     europe: loaded.europe,
+    campus,
   };
 
   const game = new Game(canvas, assets);
@@ -63,6 +67,9 @@ async function start(): Promise<void> {
   if (new URLSearchParams(location.search).has('test')) {
     (window as unknown as { heroes: Game }).heroes = game;
   }
+
+  // Kampuskuvat ladataan taustalla, jotta aloitusnäkymä aukeaa heti.
+  campus.preloadAll();
 
   boot?.classList.add('hidden');
   window.setTimeout(() => boot?.remove(), 400);

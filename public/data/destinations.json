@@ -32,7 +32,18 @@
         "en": "Around 6,000 students on a single campus, with roughly 15% of degree students coming from abroad."
       },
       "source": "seamk.fi",
-      "terrain": "forest",
+      "scenery": {
+        "far": "spruce",
+        "mid": "barns",
+        "near": "birch"
+      },
+      "landmark": {
+        "kind": "lakeudenRisti",
+        "name": {
+          "fi": "Lakeuden Risti",
+          "en": "Cross of the Plains church"
+        }
+      },
       "theme": {
         "skyTop": "#0b3a4a",
         "skyBottom": "#2e8ba0",
@@ -66,7 +77,18 @@
         "en": "The largest university of applied sciences in Flanders: over 21,000 students across campuses in several cities."
       },
       "source": "thomasmore.be",
-      "terrain": "city",
+      "scenery": {
+        "far": "city",
+        "mid": "gables",
+        "near": "deciduous"
+      },
+      "landmark": {
+        "kind": "rumbold",
+        "name": {
+          "fi": "Pyhän Rumoldin torni",
+          "en": "St. Rumbold's Tower"
+        }
+      },
       "theme": {
         "skyTop": "#2a1c4a",
         "skyBottom": "#8a5bb0",
@@ -100,7 +122,18 @@
         "en": "With over 44,000 students, Fontys is one of the largest universities of applied sciences in the Netherlands."
       },
       "source": "fontys.nl",
-      "terrain": "city",
+      "scenery": {
+        "far": "modern",
+        "mid": "city",
+        "near": "deciduous"
+      },
+      "landmark": {
+        "kind": "evoluon",
+        "name": {
+          "fi": "Evoluon",
+          "en": "Evoluon"
+        }
+      },
       "theme": {
         "skyTop": "#0d2440",
         "skyBottom": "#2f6ea8",
@@ -134,7 +167,18 @@
         "en": "Around 8,500 students and 870 staff. A thousand of the students come from more than 40 countries."
       },
       "source": "ucn.dk",
-      "terrain": "coast",
+      "scenery": {
+        "far": "sea",
+        "mid": "city",
+        "near": "deciduous"
+      },
+      "landmark": {
+        "kind": "aalborgTower",
+        "name": {
+          "fi": "Aalborgin torni ja Limvuono",
+          "en": "Aalborg Tower and the Limfjord"
+        }
+      },
       "theme": {
         "skyTop": "#123049",
         "skyBottom": "#57a8c4",
@@ -168,7 +212,18 @@
         "en": "Founded in 1979. Around 3,500 students in the farmland of the Alentejo region."
       },
       "source": "ipbeja.pt",
-      "terrain": "fields",
+      "scenery": {
+        "far": "fields",
+        "mid": "whitehouses",
+        "near": "olive"
+      },
+      "landmark": {
+        "kind": "bejaKeep",
+        "name": {
+          "fi": "Bejan linnan päätorni",
+          "en": "Beja Castle keep"
+        }
+      },
       "theme": {
         "skyTop": "#2b3a6b",
         "skyBottom": "#e9a05a",
@@ -202,7 +257,18 @@
         "en": "Around 9,000 students and over 100 nationalities, on campuses in Deggendorf, Pfarrkirchen and Cham."
       },
       "source": "th-deg.de",
-      "terrain": "hills",
+      "scenery": {
+        "far": "mountains",
+        "mid": "spruce",
+        "near": "deciduous"
+      },
+      "landmark": {
+        "kind": "onionTower",
+        "name": {
+          "fi": "Baijerin metsän vaarat",
+          "en": "The hills of the Bavarian Forest"
+        }
+      },
       "theme": {
         "skyTop": "#16293f",
         "skyBottom": "#5f8fb5",
@@ -236,7 +302,18 @@
         "en": "Founded in 1983. Around 13,000 students from 80 countries, with campuses in two cities."
       },
       "source": "hh.se",
-      "terrain": "coast",
+      "scenery": {
+        "far": "sea",
+        "mid": "dunes",
+        "near": "spruce"
+      },
+      "landmark": {
+        "kind": "halmstadCastle",
+        "name": {
+          "fi": "Halmstadin linna",
+          "en": "Halmstad Castle"
+        }
+      },
       "theme": {
         "skyTop": "#0e2c46",
         "skyBottom": "#4aa3c9",
@@ -270,7 +347,18 @@
         "en": "Founded in 2000. Around 6,500 students across nine faculties."
       },
       "source": "viko.lt",
-      "terrain": "city",
+      "scenery": {
+        "far": "hills",
+        "mid": "city",
+        "near": "deciduous"
+      },
+      "landmark": {
+        "kind": "gediminas",
+        "name": {
+          "fi": "Gediminaksen torni",
+          "en": "Gediminas' Tower"
+        }
+      },
       "theme": {
         "skyTop": "#3a1d34",
         "skyBottom": "#c46a6a",
@@ -304,7 +392,18 @@
         "en": "Founded in 1919. Around 9,700 students, focused on agriculture, forestry and regional development."
       },
       "source": "mendelu.cz",
-      "terrain": "forest",
+      "scenery": {
+        "far": "hills",
+        "mid": "deciduous",
+        "near": "vineyard"
+      },
+      "landmark": {
+        "kind": "petrov",
+        "name": {
+          "fi": "Pietarin ja Paavalin katedraali",
+          "en": "Cathedral of St. Peter and Paul"
+        }
+      },
       "theme": {
         "skyTop": "#1a2f22",
         "skyBottom": "#6aa06a",
