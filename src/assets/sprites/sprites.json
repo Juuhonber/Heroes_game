@@ -1,5 +1,5 @@
 {
-  "note": "Ruudut luetaan riveittäin vasemmalta oikealle. frameWidth/-Height ovat lähdekuvan pikseleitä.",
+  "note": "Ruudut luetaan riveittäin vasemmalta oikealle. footY = jalkojen maaviiva ruudussa. cyclePx = matka, jonka hahmo etenee yhden juoksusyklin aikana (ruudun pikseleinä); peli sovittaa toistonopeuden juoksuvauhtiin.",
   "clips": {
     "idle": {
       "src": "sprites/mascot_idle.svg",
@@ -8,16 +8,19 @@
       "columns": 2,
       "frames": 4,
       "fps": 5,
-      "loop": true
+      "loop": true,
+      "footY": 300
     },
     "run": {
       "src": "sprites/mascot_run.svg",
       "frameWidth": 320,
       "frameHeight": 320,
       "columns": 4,
-      "frames": 8,
-      "fps": 15,
-      "loop": true
+      "frames": 12,
+      "fps": 24,
+      "loop": true,
+      "footY": 300,
+      "cyclePx": 220.6
     },
     "jump": {
       "src": "sprites/mascot_jump.svg",
@@ -26,7 +29,8 @@
       "columns": 2,
       "frames": 2,
       "fps": 6,
-      "loop": false
+      "loop": false,
+      "footY": 300
     },
     "hurt": {
       "src": "sprites/mascot_hurt.svg",
@@ -35,7 +39,8 @@
       "columns": 2,
       "frames": 2,
       "fps": 8,
-      "loop": false
+      "loop": false,
+      "footY": 300
     }
   }
 }

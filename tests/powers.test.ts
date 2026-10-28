@@ -1,18 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { RunSim } from '../src/game/RunSim';
 import type { SimEvent } from '../src/game/RunSim';
-import { OBSTACLE_SHAPES } from '../src/game/Level';
-import { GROUND_Y, POWER, POWER_TUNING } from '../src/game/constants';
+import { BLOCK, GROUND_Y, POWER, POWER_TUNING } from '../src/game/constants';
 import { POWER_FOR_STRENGTH } from '../src/game/powers';
 import type { Strength } from '../src/data/destinations';
 import { DT } from './helpers';
 
 /** Tyhjä rata, jolle testi asettaa omat esteensä. */
 function emptyRun(strength: Strength): RunSim {
-  const sim = new RunSim({ id: `power-${strength}`, goalDistance: 400, obstacleDensity: 1, strength });
-  sim.level.obstacles.length = 0;
-  sim.level.pits.length = 0;
-  sim.level.tokens.length = 0;
+  const sim = new RunSim({ id: `power-${strength}`, goalDistance: 400, strength }, []);
   return sim;
 }
 
@@ -22,21 +18,45 @@ function run(sim: RunSim, seconds: number): SimEvent[] {
   return events;
 }
 
-describe('kuutiot', () => {
-  it('yksikään kuutio ei kerry pelkällä juoksulla ilman hyppyä', () => {
+/** Piikkirivi ja kuoppa pelaajan edessä. */
+function hazards(sim: RunSim): void {
+  for (let i = 0; i < 3; i++) sim.level.spikes.push({ x: 600 + i * BLOCK, base: GROUND_Y, hit: false, grown: false });
+  sim.level.pits.push({ x: 1100, w: 200, bridged: false });
+}
+
+describe('opintopisteet', () => {
+  it('ilmassa oleva opintopiste ei kerry pelkällä juoksulla', () => {
     const sim = emptyRun('community');
-    sim.level.tokens.push({ x: 600, y: GROUND_Y - 205, taken: false });
-    sim.level.tokens.push({ x: 900, y: GROUND_Y - 300, taken: false });
-    run(sim, 3);
-    expect(sim.tokensTaken).toBe(0);
+    sim.level.pickups.push({ x: 600, y: GROUND_Y - 3.2 * BLOCK, kind: 'credit', taken: false });
+    run(sim, 2);
+    expect(sim.credits).toBe(0);
+  });
+
+  it('hypyllä kerätty opintopiste kasvattaa pisteitä ja voimavarausta', () => {
+    const sim = emptyRun('community');
+    sim.level.pickups.push({ x: 600, y: GROUND_Y - 3.2 * BLOCK, kind: 'credit', taken: false });
+    sim.charges = 0;
+    // Kaari kulkee 3,2 ruudun korkeuden kautta noin 0,1 s ponnistuksen jälkeen.
+    for (let f = 0; f < 120; f++) {
+      if (sim.jumps === 0 && sim.player.worldX > 600 - sim.player.speed * 0.1) sim.press('jump');
+      sim.step(DT);
+    }
+    expect(sim.credits).toBe(1);
+    expect(sim.charges).toBe(1);
+  });
+
+  it('oppimiskokonaisuus on viiden opintopisteen arvoinen', () => {
+    const sim = emptyRun('community');
+    sim.level.pickups.push({ x: 500, y: GROUND_Y - BLOCK, kind: 'module', taken: false });
+    run(sim, 1);
+    expect(sim.modules).toBe(1);
+    expect(sim.totalCredits).toBe(5);
   });
 });
 
 describe('supervoimat', () => {
-  it('jokainen juoksu alkaa yhdellä varauksella, jotta voiman voi kokeilla heti', () => {
-    expect(new RunSim({ id: 'x', goalDistance: 400, obstacleDensity: 1, strength: 'digital' }).charges).toBe(
-      POWER.startCharges,
-    );
+  it('jokainen juoksu alkaa yhdellä varauksella', () => {
+    expect(emptyRun('digital').charges).toBe(POWER.startCharges);
     expect(POWER.startCharges).toBeGreaterThanOrEqual(1);
   });
 
@@ -44,34 +64,36 @@ describe('supervoimat', () => {
     const sim = emptyRun('community');
     sim.charges = 0;
     sim.press('power');
-    const events = sim.step(DT);
-    expect(events).toContainEqual({ type: 'noCharge' });
+    expect(sim.step(DT)).toContainEqual({ type: 'noCharge' });
     expect(sim.activePower).toBeNull();
   });
 
-  // Tiimisuoja, raketti ja kasvuvoima vievät läpi sekä korkean esteen että
-  // kuopan ilman yhtäkään hyppyä.
+  it('ilman voimaa piikkirivi kaatuu (testi erottelee)', () => {
+    const sim = emptyRun('community');
+    hazards(sim);
+    run(sim, 2.5);
+    expect(sim.phase).toBe('crashed');
+  });
+
   for (const strength of ['community', 'innovation', 'sustainability'] as Strength[]) {
-    it(`${POWER_FOR_STRENGTH[strength]} vie esteen ja kuopan läpi ilman hyppyä`, () => {
+    it(`${POWER_FOR_STRENGTH[strength]} vie piikkirivin ja kuopan läpi ilman hyppyä`, () => {
       const sim = emptyRun(strength);
-      const tall = OBSTACLE_SHAPES.tall;
-      sim.level.obstacles.push({ kind: 'tall', x: 520, w: tall.w, h: tall.h, hit: false, grown: false });
-      sim.level.pits.push({ x: 900, w: 200, bridged: false });
+      hazards(sim);
       sim.press('power');
-      // 2,8 s riittää kuopan (900–1100) ohi alkunopeudella.
-      run(sim, 2.8);
+      run(sim, 2.6);
       expect(sim.phase).toBe('run');
-      expect(sim.player.worldX).toBeGreaterThan(1150);
+      expect(sim.player.worldX).toBeGreaterThan(1350);
       expect(sim.jumps).toBe(0);
     });
   }
 
-  it('ilman voimaa sama tilanne kaatuu (testi erottelee)', () => {
+  it('tiimisuoja murskaa myös palikan, johon muuten törmäisi', () => {
     const sim = emptyRun('community');
-    const tall = OBSTACLE_SHAPES.tall;
-    sim.level.obstacles.push({ kind: 'tall', x: 520, w: tall.w, h: tall.h, hit: false, grown: false });
-    run(sim, 2.2);
-    expect(sim.phase).toBe('crashed');
+    sim.level.blocks.push({ x: 700, top: GROUND_Y - 3 * BLOCK, w: 3 * BLOCK, h: 3 * BLOCK, hit: false });
+    sim.press('power');
+    run(sim, 1.5);
+    expect(sim.phase).toBe('run');
+    expect(sim.level.blocks[0]!.hit).toBe(true);
   });
 
   it('hidastus hidastaa maailmaa voiman keston ajan', () => {
@@ -87,34 +109,14 @@ describe('supervoimat', () => {
     expect(slowed.activePower).toBeNull();
   });
 
-  it('raketti ei laskeudu esteen päälle', () => {
+  it('raketti ei laskeudu esteen päälle eikä kerää oppimiskokonaisuutta', () => {
     const sim = emptyRun('innovation');
-    // Esteitä juuri siihen kohtaan, johon lento normaalisti päättyisi.
-    const block = OBSTACLE_SHAPES.block;
-    for (let x = 1100; x < 1700; x += 150) {
-      sim.level.obstacles.push({ kind: 'block', x, w: block.w, h: block.h, hit: false, grown: false });
-    }
+    for (let x = 1000; x < 1700; x += 120) sim.level.spikes.push({ x, base: GROUND_Y, hit: false, grown: false });
+    sim.level.pickups.push({ x: 800, y: GROUND_Y - 4.3 * BLOCK, kind: 'module', taken: false });
     sim.press('power');
     run(sim, 4);
     expect(sim.phase).toBe('run');
     expect(sim.player.worldX).toBeGreaterThan(1800);
-  });
-
-  it('kuutio esteen yllä kerätään hyvin ajoitetulla hypyllä ja se antaa varauksen', () => {
-    const sim = emptyRun('community');
-    const block = OBSTACLE_SHAPES.block;
-    sim.level.obstacles.push({ kind: 'block', x: 800, w: block.w, h: block.h, hit: false, grown: false });
-    sim.level.tokens.push({ x: 845, y: GROUND_Y - 300, taken: false });
-    const before = sim.charges;
-    // Lakipiste esteen kohdalle: ilma-aika 0,8 s, joten ponnistus 0,4 s ennen.
-    for (let f = 0; f < 240 && sim.phase === 'run'; f++) {
-      if (sim.player.onGround && sim.player.worldX > 845 - sim.player.speed * 0.4 && sim.jumps === 0) {
-        sim.press('jump');
-      }
-      sim.step(DT);
-    }
-    expect(sim.phase).toBe('run');
-    expect(sim.tokensTaken).toBe(1);
-    expect(sim.charges).toBe(before + 1);
+    expect(sim.modules).toBe(0);
   });
 });

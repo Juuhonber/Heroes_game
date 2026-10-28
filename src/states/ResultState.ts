@@ -10,6 +10,8 @@ import type { Destination } from '../data/destinations';
 import type { RunResult } from './PlayState';
 import { clamp, easeOutCubic } from '../core/math';
 import { Animator } from '../core/Animator';
+import { MODULE_CREDITS } from '../game/constants';
+import { moduleSprite } from '../ui/pickups';
 
 const CARD = { x: 300, y: 140, w: 1320, h: 640 };
 /** Tekstipalstan leveys: oikea reuna on varattu maskotille. */
@@ -134,7 +136,7 @@ export class ResultState implements GameState {
     ctx.textAlign = 'right';
     ctx.font = font('bold', 34);
     ctx.fillText(
-      `${this.result.distance} / ${this.destination.goalDistance} ${strings.metres}  ·  ${strings.tokens} ${this.result.tokens}/${this.result.tokenTotal}`,
+      `${this.result.distance} / ${this.destination.goalDistance} ${strings.metres}  ·  ${this.totalCredits} ${strings.creditUnit}`,
       CARD.x + CARD.w - 52,
       CARD.y + 66,
     );
@@ -167,11 +169,13 @@ export class ResultState implements GameState {
     // Fakta
     ctx.textAlign = 'left';
     ctx.fillStyle = PALETTE.ink;
-    ctx.font = font('body', 38);
+    ctx.font = font('body', 34);
     const lines = wrapText(ctx, localized(this.destination.fact), TEXT_W);
-    lines.slice(0, 5).forEach((line, i) => {
-      ctx.fillText(line, CARD.x + 52, CARD.y + 360 + i * 54);
+    lines.slice(0, 3).forEach((line, i) => {
+      ctx.fillText(line, CARD.x + 52, CARD.y + 336 + i * 48);
     });
+
+    this.drawModuleBox(ctx, CARD.x + 40, CARD.y + 462, TEXT_W + 24, 120);
 
     // Maskotti täyttää kortin oikean reunan ja pitää palautteen elävänä.
     ctx.save();
@@ -186,12 +190,61 @@ export class ResultState implements GameState {
     ctx.font = font('body', 24);
     const photo = this.game.assets.campus.get(this.destination.id);
     const credit = photo ? `  ·  ${strings.photo}: ${photo.entry.credit}` : '';
-    ctx.fillText(`${strings.source}: ${this.destination.source}${credit}`, CARD.x + 52, CARD.y + CARD.h - 48);
+    const bonus = this.result.modules > 0 ? `, ${this.destination.bonusSource}` : '';
+    ctx.fillText(`${strings.source}: ${this.destination.source}${bonus}${credit}`, CARD.x + 52, CARD.y + CARD.h - 34);
     ctx.globalAlpha = ease;
     ctx.restore();
 
     this.buttons.draw(ctx, this.keyboardMode);
     this.drawIdle(ctx);
+  }
+
+  private get totalCredits(): number {
+    return this.result.credits + this.result.modules * MODULE_CREDITS;
+  }
+
+  /**
+   * Oppimiskokonaisuus: kerättynä se avaa bonusfaktan, muuten kortti kertoo,
+   * mistä sen löytää. Vaikeampi reitti palkitaan lisätiedolla.
+   */
+  private drawModuleBox(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+    const strings = t();
+    const color = STRENGTH_COLORS[this.destination.strength];
+    const label = `${MODULE_CREDITS} ${strings.creditUnit}`;
+    ctx.save();
+    if (this.result.modules > 0) {
+      ctx.fillStyle = color;
+      roundRect(ctx, x, y, w, h, 18);
+      ctx.fill();
+      ctx.drawImage(moduleSprite(color, label), x + 8, y + 12, 104, 95);
+      ctx.fillStyle = PALETTE.ink;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.font = font('display', 26);
+      ctx.fillText(`${strings.moduleDone}  +${label}`, x + 124, y + 28);
+      ctx.font = font('body', 24);
+      wrapText(ctx, localized(this.destination.bonusFact), w - 148)
+        .slice(0, 2)
+        .forEach((line, i) => ctx.fillText(line, x + 124, y + 64 + i * 30));
+    } else {
+      ctx.strokeStyle = 'rgba(4, 32, 29, 0.35)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([12, 10]);
+      roundRect(ctx, x, y, w, h, 18);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha *= 0.45;
+      ctx.drawImage(moduleSprite('#9aa6a3', '?'), x + 8, y + 12, 104, 95);
+      ctx.globalAlpha /= 0.45;
+      ctx.fillStyle = PALETTE.ink;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.font = font('body', 26);
+      wrapText(ctx, strings.moduleTeaser, w - 148)
+        .slice(0, 2)
+        .forEach((line, i, all) => ctx.fillText(line, x + 124, y + h / 2 + (i - (all.length - 1) / 2) * 34));
+    }
+    ctx.restore();
   }
 
   /** Leimarivi: yksi piste per kohde, suoritetut täytettyinä. */

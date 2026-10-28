@@ -20,6 +20,9 @@ interface Layer {
 }
 
 const TILE = VIRTUAL_W;
+/** Kerroskuvan korkeus: muodot ulottuvat hieman maanpinnan alle. */
+const LAYER_H = GROUND_Y + 60;
+const LANDMARK_BOX = { w: 1000, h: 760, baseX: 500, baseY: 700 };
 /** Maamerkki liukuu hitaasti: se pysyy näkyvissä koko juoksun ajan. */
 const LANDMARK_FACTOR = 0.07;
 const LANDMARK_START_X = 1320;
@@ -35,6 +38,14 @@ export class Backdrop {
   private photo: CampusPhoto | null = null;
   private photoFade = 0;
   private lastTime = 0;
+  /**
+   * Kerrokset, taivas ja maamerkki piirretään kerran välimuistikuviin ja
+   * kopioidaan sieltä joka ruudussa. Satojen muotojen ja hohtoefektin
+   * uudelleenpiirto oli ruudun raskain osa ja aiheutti nykimistä.
+   */
+  private skyCache: HTMLCanvasElement | null = null;
+  private layerCache: HTMLCanvasElement[] = [];
+  private landmarkCache: HTMLCanvasElement | null = null;
 
   constructor(private readonly destination: Destination) {
     this.theme = destination.theme;
@@ -59,18 +70,9 @@ export class Backdrop {
   drawSky(ctx: CanvasRenderingContext2D, cameraX: number, time: number): void {
     const dt = Math.max(0, time - this.lastTime);
     this.lastTime = time;
-    const gradient = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
-    gradient.addColorStop(0, this.theme.skyTop);
-    gradient.addColorStop(1, this.theme.skyBottom);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, VIRTUAL_W, GROUND_Y);
+    ctx.drawImage(this.sky(), 0, 0);
 
     ctx.save();
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = this.theme.accent;
-    ctx.beginPath();
-    ctx.arc(1480, 210, 96, 0, Math.PI * 2);
-    ctx.fill();
     ctx.globalAlpha = 0.14;
     ctx.fillStyle = '#ffffff';
     for (let i = 0; i < 5; i++) {
@@ -115,40 +117,83 @@ export class Backdrop {
 
   drawLayers(ctx: CanvasRenderingContext2D, cameraX: number): void {
     const photoAlpha = this.photo ? this.photoFade : 0;
-    this.layers.forEach((l, index) => {
+    this.layers.forEach((_layer, index) => {
       // Kuvan kanssa kaukainen kerros ja keskikerros väistyvät.
       const fade = index === 2 ? 1 : 1 - photoAlpha * (index === 0 ? 1 : 0.75);
-      if (fade > 0.01) this.drawLayer(ctx, l, cameraX, fade);
+      if (fade > 0.01) this.drawLayer(ctx, index, cameraX, fade);
       if (index === 0 && 1 - photoAlpha > 0.01) {
         ctx.save();
         ctx.globalAlpha = 0.92 * (1 - photoAlpha);
-        drawLandmark(
-          ctx,
-          this.destination.landmark.kind,
-          LANDMARK_START_X - cameraX * LANDMARK_FACTOR,
-          GROUND_Y - 30,
-          mix(this.theme.mid, this.theme.near),
-          this.theme.skyBottom,
-        );
+        const x = LANDMARK_START_X - cameraX * LANDMARK_FACTOR;
+        ctx.drawImage(this.landmark(), x - LANDMARK_BOX.baseX, GROUND_Y - 30 - LANDMARK_BOX.baseY);
         ctx.restore();
       }
     });
   }
 
-  private drawLayer(ctx: CanvasRenderingContext2D, l: Layer, cameraX: number, fade: number): void {
-    const offset = -((cameraX * l.factor) % TILE);
+  private drawLayer(ctx: CanvasRenderingContext2D, index: number, cameraX: number, fade: number): void {
+    const l = this.layers[index]!;
+    const image = this.layerImage(index);
+    // Kokonaislukusiirto pitää terävät reunat terävinä.
+    const offset = -Math.round((cameraX * l.factor) % TILE);
     ctx.save();
     ctx.globalAlpha = l.alpha * fade;
-    ctx.fillStyle = l.color;
     for (let tile = -1; tile <= 1; tile++) {
       const ox = offset + tile * TILE;
       if (ox > VIRTUAL_W || ox + TILE < 0) continue;
+      ctx.drawImage(image, ox, 0);
+    }
+    ctx.restore();
+  }
+
+  private sky(): HTMLCanvasElement {
+    if (this.skyCache) return this.skyCache;
+    const { canvas, ctx } = offscreen(VIRTUAL_W, GROUND_Y + 200);
+    const gradient = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+    gradient.addColorStop(0, this.theme.skyTop);
+    gradient.addColorStop(1, this.theme.skyBottom);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, VIRTUAL_W, GROUND_Y + 200);
+    ctx.globalAlpha = 0.5;
+    ctx.fillStyle = this.theme.accent;
+    ctx.beginPath();
+    ctx.arc(1480, 210, 96, 0, Math.PI * 2);
+    ctx.fill();
+    this.skyCache = canvas;
+    return canvas;
+  }
+
+  private layerImage(index: number): HTMLCanvasElement {
+    const cached = this.layerCache[index];
+    if (cached) return cached;
+    const l = this.layers[index]!;
+    const { canvas, ctx } = offscreen(TILE, LAYER_H);
+    ctx.fillStyle = l.color;
+    // Muodot piirretään kolmeen kertaan siirrettyinä, jotta reunan yli
+    // ulottuvat muodot jatkuvat saumattomasti seuraavaan ruutuun.
+    for (const shift of [-TILE, 0, TILE]) {
       ctx.save();
-      ctx.translate(ox, 0);
+      ctx.translate(shift, 0);
       for (const shape of l.shapes) drawShape(ctx, l.kind, shape, l.baseY, l.detail);
       ctx.restore();
     }
-    ctx.restore();
+    this.layerCache[index] = canvas;
+    return canvas;
+  }
+
+  private landmark(): HTMLCanvasElement {
+    if (this.landmarkCache) return this.landmarkCache;
+    const { canvas, ctx } = offscreen(LANDMARK_BOX.w, LANDMARK_BOX.h);
+    drawLandmark(
+      ctx,
+      this.destination.landmark.kind,
+      LANDMARK_BOX.baseX,
+      LANDMARK_BOX.baseY,
+      mix(this.theme.mid, this.theme.near),
+      this.theme.skyBottom,
+    );
+    this.landmarkCache = canvas;
+    return canvas;
   }
 
   drawGround(ctx: CanvasRenderingContext2D, cameraX: number, pits: readonly Pit[]): void {
@@ -183,6 +228,15 @@ export class Backdrop {
       ctx.fillRect(sx + pit.w, GROUND_Y, 10, 44);
     }
   }
+}
+
+function offscreen(w: number, h: number): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D ei ole käytettävissä.');
+  return { canvas, ctx };
 }
 
 function layer(

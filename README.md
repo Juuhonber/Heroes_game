@@ -56,23 +56,51 @@ avatulla sivulla.
 Peli tarvitsee enintään kaksi toimintoa. Päätoiminto on hyppy: hiiren vasen
 painike, kosketus, välilyönti, nuoli ylös tai Enter. Hyppy on aina yhtä
 korkea painalluksen kestosta riippumatta, koska messuilla pelataan
-klikkaamalla. Toissijainen toiminto on supervoima: ruudun oikean alakulman
-voimanappi, hiiren oikea painike, vaihtonäppäin tai nuoli alas. Voimanappi
-toimii myös kosketusnäytöllä.
+klikkaamalla. Pohjassa pidetty nappi hyppää jokaisella laskeutumisella kuten
+Geometry Dashissa. Hyppyrenkaan kohdalla ilmassa painettu hyppy lähtee
+uudelleen renkaasta, ja pomppulevy lennättää kosketuksesta normaalia
+korkeammalle.
 
-Jokainen juoksu alkaa yhdellä voimavarauksella, ja jokainen kerätty kuutio
-antaa yhden lisää (enintään kolme). Voima riippuu kohteen vahvuusalueesta:
+Toissijainen toiminto on supervoima: ruudun oikean alakulman voimanappi,
+hiiren oikea painike, vaihtonäppäin tai nuoli alas. Voimanappi toimii myös
+kosketusnäytöllä.
+
+Jokainen juoksu alkaa yhdellä voimavarauksella, ja jokainen kerätty
+opintopiste antaa yhden lisää (enintään kolme). Voima riippuu kohteen
+vahvuusalueesta:
 
 | Vahvuusalue | Voima | Vaikutus |
 | --- | --- | --- |
-| Yhteisöllisyys | Tiimisuoja | 2,4 s suoja, joka murskaa esteet ja kantaa kuoppien yli |
-| Innovaatiot | Rakettireppu | lento esteiden yli; laskeutuu vain vapaalle maalle |
-| Kestävyys | Kasvuvoima | edessä olevat esteet muuttuvat pensaiksi ja kuopat kasvavat umpeen |
+| Yhteisöllisyys | Tiimisuoja | 2,4 s suoja, joka murskaa piikit ja palikat ja kantaa kuoppien yli |
+| Innovaatiot | Rakettireppu | matala lento kaiken läpi; laskeutuu vain vapaalle maalle |
+| Kestävyys | Kasvuvoima | edessä olevat piikit muuttuvat kasveiksi ja kuopat kasvavat umpeen |
 | Digitaalisuus | Hidastus | maailma hidastuu 3,4 sekunniksi alle puoleen nopeudesta |
 
 Jos pelaaja ei hyppää ensimmäisen esteen kohdalla, ruudulle tulee
-HYPPÄÄ!-kehotus. Ilman varauksia painettu voimanappi näyttää kehotuksen
-kerätä kuutioita.
+HYPPÄÄ!-kehotus. Ensimmäisen pomppulevyn, renkaan ja reittivalinnan kohdalla
+on ohjekyltti. Ilman varauksia painettu voimanappi kehottaa keräämään
+opintopisteitä.
+
+## Kenttäsuunnittelu
+
+Kentät on rakennettu Geometry Dashin periaatteilla. Palikan päälle voi
+laskeutua ja sen alta voi kulkea, mutta palikan kylkeen törmääminen kaataa.
+Piikit ja kuopat kaatavat aina. Nopeus on vakio, joten kentän rytmi on
+suunniteltavissa ruudun tarkkuudella.
+
+Rata kootaan käsin suunnitelluista kenttäpaloista (`src/game/chunks.ts`),
+jotka mitataan 60 pikselin ruuduissa. Palat ovat kolmea vaikeustasoa, ja
+niitä valitaan radan edetessä yhä vaikeammista. Jokaisella radalla on:
+
+- ainakin yksi **korkea hyppy**: seinä, joka on normaalia hyppyä korkeampi
+  ja jonka yli pääsee vain pomppulevyllä tai hyppyrenkaalla;
+- täsmälleen yksi **reittivalinta**: alempi reitti on helppo, ylempi on
+  vaikeampi (katkoja, piikkejä, tarkat hypyt) ja sen päässä on
+  **oppimiskokonaisuus** (5 op), joka avaa palautekortille bonusfaktan.
+
+Kerättävät ovat **opintopisteitä** (1 op). Osa on juoksulinjalla, osa
+hyppykaarilla. Raketilla oppimiskokonaisuutta ei voi kerätä: se ansaitaan
+taidolla.
 
 Valikot toimivat myös pelkällä näppäimistöllä: toissijainen toiminto siirtää
 kohdistusta painikkeesta toiseen ja päätoiminto valitsee kohdistetun
@@ -108,15 +136,16 @@ public       valmis aineisto, jonka generaattorit tuottavat
 Kohteet ovat tiedostossa `src/assets/data/destinations.json`. Jokaisella kohteella
 on nimi, kaupunki, koordinaatit, vahvuusalue, tietokortin fakta lähdeviitteineen
 sekä radan visuaaliset parametrit. Faktakentät perustuvat kunkin korkeakoulun
-omiin sivuihin, ja `source`-kenttä kertoo mistä luku on peräisin. Vahvuusalue
+omiin sivuihin, ja `source`-kenttä kertoo mistä luku on peräisin. Bonusreitin
+oppimiskokonaisuus avaa toisen faktan (`bonusFact`, lähde `bonusSource`).
+Vahvuusalue
 (`strength`) sen sijaan on pelin teemaväri ja sisällöllinen kehys, ei allianssin
 virallinen työnjako.
 
-Radan pituutta säätää `goalDistance` (metreinä) ja esteiden tiheyttä
-`obstacleDensity`. Rata luodaan kohteen tunnuksesta johdetulla siemenellä, joten
-sama kohde tuottaa aina saman radan ja uusi yritys on reilu. Esteiden välit
-lasketaan hypyn fysiikasta, ja testit todentavat jokaisen radan
-läpäistäväksi (ks. Testit).
+Radan pituutta säätää `goalDistance` (metreinä). Rata kootaan kohteen
+tunnuksesta johdetulla siemenellä, joten sama kohde tuottaa aina saman radan
+ja uusi yritys on reilu. Uuden kenttäpalan voi lisätä tiedostoon
+`src/game/chunks.ts`; testit todentavat, että se on läpäistävissä (ks. Testit).
 
 Maisema koostuu kolmesta kerroksesta (`scenery.far`, `mid`, `near`) ja
 kaupungin maamerkistä (`landmark`). Maisematyypit kuvaavat paikallista
@@ -162,8 +191,16 @@ vasemmalta oikealle, joten indeksi 0 on vasen ylänurkka.
 
 Brändigrafiikan vaihtaminen ei vaadi koodimuutoksia. Korvaa arkki omalla
 PNG- tai SVG-tiedostolla ja päivitä `sprites.json` vastaamaan uuden arkin
-ruutukokoa ja sarakemäärää. Nykyiset arkit ovat juoksu (8 ruutua), idle
+ruutukokoa ja sarakemäärää. Nykyiset arkit ovat juoksu (12 ruutua), idle
 (4 ruutua), hyppy (2 ruutua) ja törmäys (2 ruutua).
+
+Juoksusykli rakentuu oikeista juoksun avainasennoista (kosketus, jousto,
+työntö, palautus, polvennosto), joiden välit interpoloidaan pehmeästi.
+Generaattori sovittaa jokaisen ruudun niin, että alempi jalka osuu
+maaviivaan (`footY`), ja mittaa askelpituuden (`cyclePx`). Peli toistaa
+juoksua tahdilla, jossa yhden syklin aikana edetään askelpituuden verran,
+joten jalat eivät liu'u maata pitkin. Kauempana olevat raajat ovat hieman
+vaaleampia, jolloin ristikkäiset jalat erottuvat.
 
 ## Kartta-aineisto
 
@@ -178,14 +215,19 @@ voi muuttaa muokkaamalla `VIEW_BOUNDS`-arvoa tiedostossa `src/states/MapState.ts
 `npm test` ajaa pelilogiikan testit ilman selainta. Pelilogiikka on luokassa
 `RunSim`, joka ei piirrä mitään, joten sitä voi ajaa testeissä sellaisenaan.
 
-Tärkein testi etsii jokaiselle radalle hyppyaikataulun leveyshaulla. Haku on
-täydellinen, koska juoksunopeus ei riipu hyppimisestä: jos reittiä ei löydy,
-sitä ei ole. Haku tehdään vaaroilla, joita on levennetty 48 pikseliä
-kumpaankin suuntaan, joten jokaisella hypyllä on noin 100 ms pelivaraa
-alkunopeudella. Löydetty aikataulu ajetaan vielä oikealla simulaatiolla
-maaliin asti. Muut testit tarkistavat jokaisen estetyypin ajoitusikkunan,
-jokaisen supervoiman, kuutioiden keräämisen, sprite sheet -leikkauksen ja
-kartan projektion.
+Tärkein testi etsii jokaiselle radalle voittavan strategian muistiin
+tallentavalla haulla (`tests/helpers.ts`). Haku hyväksyy hypyn vain, jos
+painallus millä tahansa 11 peräkkäisellä ruudulla (183 ms) johtaa voittoon,
+joten jokaisella pääreitin hypyllä on vähintään tämän verran pelivaraa.
+Bonusreitti vaaditaan läpäistäväksi 5 ruudun (83 ms) ikkunalla: se on
+tarkoituksella vaikeampi. Löydetty suunnitelma ajetaan vielä oikealla
+simulaatiolla 50, 60 ja 144 Hz:n ruudunpäivityksellä maaliin asti.
+
+Muut testit tarkistavat jokaisen kenttäpalan erikseen, että korkeiden
+seinien yli ei pääse ilman pomppulevyä tai rengasta, että ylempi reitti on
+alempaa vaikeampi, että alempi reitti mahtuu tasanteiden alta, jokaisen
+supervoiman, opintopisteiden keräämisen, sprite sheet -leikkauksen ja kartan
+projektion.
 
 ## Messukäyttö
 

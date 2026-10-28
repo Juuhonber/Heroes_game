@@ -75,6 +75,9 @@ export interface Destination {
   strength: Strength;
   fact: Localized;
   source: string;
+  /** Oppimiskokonaisuuden palkinto: toinen fakta, joka avautuu bonusreitiltä. */
+  bonusFact: Localized;
+  bonusSource: string;
   scenery: Scenery;
   landmark: Landmark;
   theme: Theme;

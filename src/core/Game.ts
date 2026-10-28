@@ -42,6 +42,10 @@ export class Game {
    * palaa joutoajan jälkeen alkuun, eikä mitään tallenneta.
    */
   readonly stamps = new Set<string>();
+  /** Kohteet, joiden oppimiskokonaisuus on kerätty tällä vierailulla. */
+  readonly modules = new Set<string>();
+  /** Tämän vierailijan keräämät opintopisteet yhteensä. */
+  sessionCredits = 0;
 
   private states = new Map<string, GameState>();
   private current: GameState | null = null;
@@ -140,6 +144,8 @@ export class Game {
     }
     this.input.resetIdle();
     this.stamps.clear();
+    this.modules.clear();
+    this.sessionCredits = 0;
     if (this.current?.name !== 'map') this.transitionTo('map', { idle: true });
   }
 

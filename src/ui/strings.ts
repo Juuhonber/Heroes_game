@@ -7,8 +7,6 @@ type Dict = {
   tagline: string;
   chooseDestination: string;
   chooseHint: string;
-  start: string;
-  play: string;
   retry: string;
   nextDestination: string;
   backToMap: string;
@@ -16,14 +14,9 @@ type Dict = {
   fail: string;
   successLead: string;
   failLead: string;
-  distance: string;
-  goal: string;
-  tokens: string;
   power: string;
-  powerReady: string;
   jumpHint: string;
   powerHint: string;
-  startHint: string;
   idleWarning: string;
   source: string;
   language: string;
@@ -31,6 +24,12 @@ type Dict = {
   metres: string;
   strengths: Record<Strength, string>;
   powers: Record<PowerKind, { name: string; desc: string }>;
+  creditUnit: string;
+  credits: string;
+  module: string;
+  moduleDone: string;
+  moduleTeaser: string;
+  signs: { fork: string; pad: string; orb: string };
   noCharge: string;
   tryPower: string;
   jumpPrompt: string;
@@ -45,8 +44,6 @@ const fi: Dict = {
   tagline: 'Juokse HEROES-korkeakoulujen läpi',
   chooseDestination: 'Valitse kohde',
   chooseHint: 'Napsauta karttaa tai korkeakoulua listalta',
-  start: 'Aloita',
-  play: 'Pelaa',
   retry: 'Uusi yritys',
   nextDestination: 'Seuraava kohde',
   backToMap: 'Takaisin kartalle',
@@ -54,14 +51,9 @@ const fi: Dict = {
   fail: 'Törmäys',
   successLead: 'Pääsit perille kohteeseen',
   failLead: 'Matka katkesi kohteeseen',
-  distance: 'Matka',
-  goal: 'Maali',
-  tokens: 'Kuutiot',
   power: 'Voima',
-  powerReady: 'Voima valmiina',
   jumpHint: 'Napsauta tai paina VÄLILYÖNTI = hyppy',
   powerHint: 'Voimanappi, VAIHTO tai hiiren oikea = supervoima',
-  startHint: 'Napsauta aloittaaksesi',
   idleWarning: 'Palataan kartalle',
   source: 'Lähde',
   language: 'EN',
@@ -79,7 +71,13 @@ const fi: Dict = {
     grow: { name: 'Kasvuvoima', desc: 'Esteet kasveiksi' },
     slowmo: { name: 'Hidastus', desc: 'Aika hidastuu' },
   },
-  noCharge: 'Kerää kuutioita!',
+  creditUnit: 'op',
+  credits: 'Opintopisteet',
+  module: 'Oppimiskokonaisuus',
+  moduleDone: 'Oppimiskokonaisuus suoritettu',
+  moduleTeaser: 'Ylemmältä reitiltä löytyy oppimiskokonaisuus (+5 op) ja bonusfakta.',
+  signs: { fork: 'Oppimiskokonaisuus 5 op', pad: 'Pomppulevy', orb: 'Paina renkaassa!' },
+  noCharge: 'Kerää opintopisteitä!',
   tryPower: 'Kokeile supervoimaa!',
   jumpPrompt: 'HYPPÄÄ!',
   scenery: 'Maisemassa',
@@ -93,8 +91,6 @@ const en: Dict = {
   tagline: 'Run through the HEROES universities',
   chooseDestination: 'Choose a destination',
   chooseHint: 'Click the map or pick an institution from the list',
-  start: 'Start',
-  play: 'Play',
   retry: 'Try again',
   nextDestination: 'Next destination',
   backToMap: 'Back to map',
@@ -102,14 +98,9 @@ const en: Dict = {
   fail: 'Crash',
   successLead: 'You reached',
   failLead: 'The run ended on the way to',
-  distance: 'Distance',
-  goal: 'Goal',
-  tokens: 'Cubes',
   power: 'Power',
-  powerReady: 'Power ready',
   jumpHint: 'Click or press SPACE = jump',
   powerHint: 'Power button, SHIFT or right click = superpower',
-  startHint: 'Click to start',
   idleWarning: 'Returning to the map',
   source: 'Source',
   language: 'FI',
@@ -127,7 +118,13 @@ const en: Dict = {
     grow: { name: 'Growth power', desc: 'Obstacles into plants' },
     slowmo: { name: 'Slow motion', desc: 'Time slows down' },
   },
-  noCharge: 'Collect cubes!',
+  creditUnit: 'ECTS',
+  credits: 'Study credits',
+  module: 'Learning module',
+  moduleDone: 'Learning module completed',
+  moduleTeaser: 'The upper route hides a learning module (+5 ECTS) and a bonus fact.',
+  signs: { fork: 'Learning module 5 ECTS', pad: 'Jump pad', orb: 'Tap in the ring!' },
+  noCharge: 'Collect study credits!',
   tryPower: 'Try your superpower!',
   jumpPrompt: 'JUMP!',
   scenery: 'In the scenery',

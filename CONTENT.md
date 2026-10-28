@@ -16,6 +16,23 @@ lukuvuosittain, joten ne kannattaa tarkistaa ennen isoa messutapahtumaa.
 | VIKO, Vilna | perustettu 2000, noin 6 500 opiskelijaa, yhdeksän tiedekuntaa | viko.lt |
 | MENDELU, Brno | perustettu 1919, noin 9 700 opiskelijaa | mendelu.cz |
 
+## Bonusfaktat (oppimiskokonaisuus)
+
+Avautuvat palautekortille, kun pelaaja kerää radan ylemmältä reitiltä
+oppimiskokonaisuuden.
+
+| Kohde | Bonusfakta | Lähde |
+| --- | --- | --- |
+| SeAMK | vetää HEROES-allianssin yhteisten opinto-ohjelmien työtä; opiskelijoita yli 55 maasta | SeAMK (LinkedIn) |
+| Thomas More | HEROES käynnistettiin Geelin kampuksella; korkeakoulu syntyi 2012 yhdistymisestä | seamk.fi, nl.wikipedia.org |
+| Fontys | kolme suurinta kampusta Eindhovenissa, Tilburgissa ja Venlossa | en.wikipedia.org |
+| UCN | yli 40 ammatilliseen uraan tähtäävää koulutusohjelmaa | ucn.dk |
+| IPBeja | kansainväliset opiskelijat yli 40 maasta | ipbeja.pt |
+| DIT | pääkampuksen lisäksi kahdeksan teknologiakampusta Itä-Baijerissa | th-deg.de |
+| Halmstad | tutkimuksen painopisteet: terveysinnovaatiot sekä älykkäät kaupungit ja yhteisöt | hh.se |
+| VIKO | 58 opinto-ohjelmaa agroteknologiasta taiteeseen ja muotoiluun | viko.lt |
+| MENDELU | kantanut 1990-luvulta Gregor Johann Mendelin nimeä; Mendel teki kokeensa Brnossa | mendelu.cz, en.wikipedia.org |
+
 Allianssin yleistiedot: yhdeksän ammatillisesti suuntautunutta korkeakoulua
 yhdeksästä maasta, Euroopan komission hyväksyntä heinäkuussa 2024.
 Lähde: heroesuniversity.eu.

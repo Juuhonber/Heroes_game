@@ -5,10 +5,19 @@ export interface Clip {
   sheet: SpriteSheet;
   fps: number;
   loop: boolean;
+  /** Jalkojen maaviiva ruudussa; oletuksena ruudun alareuna. */
+  footY: number;
+  cyclePx?: number;
 }
 
 export function makeClip(image: CanvasImageSource, def: ClipDef): Clip {
-  return { sheet: SpriteSheet.fromDef(image, def), fps: def.fps, loop: def.loop };
+  return {
+    sheet: SpriteSheet.fromDef(image, def),
+    fps: def.fps,
+    loop: def.loop,
+    footY: def.footY ?? def.frameHeight,
+    cyclePx: def.cyclePx,
+  };
 }
 
 /** Toistaa nimettyjä animaatioita ja pitää kirjaa nykyisestä ruudusta. */
@@ -58,10 +67,11 @@ export class Animator {
     this.time = 0;
   }
 
-  update(dt: number): void {
+  /** @param fps Toistonopeus; oletuksena animaation oma. */
+  update(dt: number, fps?: number): void {
     const clip = this.clip;
     this.time += dt;
-    const step = 1 / clip.fps;
+    const step = 1 / (fps ?? clip.fps);
     while (this.time >= step) {
       this.time -= step;
       if (clip.loop) {
@@ -75,7 +85,7 @@ export class Animator {
     }
   }
 
-  /** Piirtää nykyisen ruudun keskitettynä pisteeseen (x, y) alareunasta. */
+  /** Piirtää nykyisen ruudun niin, että jalat osuvat pisteeseen (x, y). */
   drawAnchored(
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -86,6 +96,7 @@ export class Animator {
     const clip = this.clip;
     const scale = height / clip.sheet.frameHeight;
     const width = clip.sheet.frameWidth * scale;
-    clip.sheet.draw(ctx, this.frame, x - width / 2, y - height, width, height, flipX);
+    const top = y - clip.footY * scale;
+    clip.sheet.draw(ctx, this.frame, x - width / 2, top, width, height, flipX);
   }
 }

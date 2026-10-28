@@ -56,7 +56,7 @@ export class MapState implements GameState {
         (d, i) =>
           new Button({
             id: d.id,
-            label: this.game.stamps.has(d.id) ? `${d.name}  ✓` : d.name,
+            label: `${d.name}${this.game.stamps.has(d.id) ? '  ✓' : ''}${this.game.modules.has(d.id) ? '  ★' : ''}`,
             sublabel: `${d.city}, ${localized(d.country)} · ${strings.strengths[d.strength]}`,
             x: PANEL.x,
             y: PANEL.y + i * (h + gap),
@@ -178,15 +178,12 @@ export class MapState implements GameState {
     ctx.globalAlpha = 1;
 
     const done = this.game.stamps.size;
-    if (done > 0) {
+    if (done > 0 || this.game.sessionCredits > 0) {
       const total = this.game.assets.destinations.length;
       ctx.fillStyle = PALETTE.yellow;
       ctx.font = font('bold', 26);
-      ctx.fillText(
-        done === total ? strings.allStamps : `${strings.stamps} ${done}/${total}`,
-        60,
-        146,
-      );
+      const stamps = done === total ? strings.allStamps : `${strings.stamps} ${done}/${total}`;
+      ctx.fillText(`${stamps}  ·  ${this.game.sessionCredits} ${strings.creditUnit}`, 60, 146);
     }
 
     ctx.textAlign = 'left';

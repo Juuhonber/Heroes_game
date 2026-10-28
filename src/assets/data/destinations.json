@@ -32,6 +32,11 @@
         "en": "Around 6,000 students on a single campus, with roughly 15% of degree students coming from abroad."
       },
       "source": "seamk.fi",
+      "bonusFact": {
+        "fi": "SeAMK vetää HEROES-allianssin yhteisten opinto-ohjelmien työtä, ja sen opiskelijat tulevat yli 55 maasta.",
+        "en": "SeAMK leads the HEROES alliance's work on joint study programmes, and its students come from over 55 countries."
+      },
+      "bonusSource": "SeAMK (LinkedIn)",
       "scenery": {
         "far": "spruce",
         "mid": "barns",
@@ -77,6 +82,11 @@
         "en": "The largest university of applied sciences in Flanders: over 21,000 students across campuses in several cities."
       },
       "source": "thomasmore.be",
+      "bonusFact": {
+        "fi": "HEROES-allianssi käynnistettiin Thomas Moren Geelin kampuksella. Thomas More syntyi vuonna 2012 kahden korkeakoulun yhdistyessä.",
+        "en": "The HEROES alliance was launched at Thomas More's Geel campus. Thomas More was formed in 2012 when two institutions merged."
+      },
+      "bonusSource": "seamk.fi, nl.wikipedia.org",
       "scenery": {
         "far": "city",
         "mid": "gables",
@@ -122,6 +132,11 @@
         "en": "With over 44,000 students, Fontys is one of the largest universities of applied sciences in the Netherlands."
       },
       "source": "fontys.nl",
+      "bonusFact": {
+        "fi": "Fontysin kolme suurinta kampusta ovat Eindhovenissa, Tilburgissa ja Venlossa.",
+        "en": "Fontys has its three largest campuses in Eindhoven, Tilburg and Venlo."
+      },
+      "bonusSource": "en.wikipedia.org",
       "scenery": {
         "far": "modern",
         "mid": "city",
@@ -167,6 +182,11 @@
         "en": "Around 8,500 students and 870 staff. A thousand of the students come from more than 40 countries."
       },
       "source": "ucn.dk",
+      "bonusFact": {
+        "fi": "UCN tarjoaa yli 40 ammatilliseen uraan tähtäävää koulutusohjelmaa.",
+        "en": "UCN offers more than 40 programmes aimed at professional careers."
+      },
+      "bonusSource": "ucn.dk",
       "scenery": {
         "far": "sea",
         "mid": "city",
@@ -212,6 +232,11 @@
         "en": "Founded in 1979. Around 3,500 students in the farmland of the Alentejo region."
       },
       "source": "ipbeja.pt",
+      "bonusFact": {
+        "fi": "IPBejan kansainväliset opiskelijat tulevat yli 40 maasta.",
+        "en": "IPBeja's international students come from more than 40 countries."
+      },
+      "bonusSource": "ipbeja.pt",
       "scenery": {
         "far": "fields",
         "mid": "whitehouses",
@@ -257,6 +282,11 @@
         "en": "Around 9,000 students and over 100 nationalities, on campuses in Deggendorf, Pfarrkirchen and Cham."
       },
       "source": "th-deg.de",
+      "bonusFact": {
+        "fi": "Deggendorfin pääkampuksen lisäksi DIT:llä on kahdeksan teknologiakampusta eri puolilla Itä-Baijeria.",
+        "en": "Besides its main campus in Deggendorf, DIT runs eight technology campuses across eastern Bavaria."
+      },
+      "bonusSource": "th-deg.de",
       "scenery": {
         "far": "mountains",
         "mid": "spruce",
@@ -302,6 +332,11 @@
         "en": "Founded in 1983. Around 13,000 students from 80 countries, with campuses in two cities."
       },
       "source": "hh.se",
+      "bonusFact": {
+        "fi": "Tutkimuksen painopisteet ovat terveysinnovaatiot sekä älykkäät kaupungit ja yhteisöt.",
+        "en": "Its research focuses on health innovation and on smart cities and communities."
+      },
+      "bonusSource": "hh.se",
       "scenery": {
         "far": "sea",
         "mid": "dunes",
@@ -347,6 +382,11 @@
         "en": "Founded in 2000. Around 6,500 students across nine faculties."
       },
       "source": "viko.lt",
+      "bonusFact": {
+        "fi": "VIKOssa on 58 opinto-ohjelmaa, aina agroteknologiasta taiteeseen ja muotoiluun.",
+        "en": "VIKO offers 58 study programmes, from agrotechnology to arts and design."
+      },
+      "bonusSource": "viko.lt",
       "scenery": {
         "far": "hills",
         "mid": "city",
@@ -392,6 +432,11 @@
         "en": "Founded in 1919. Around 9,700 students, focused on agriculture, forestry and regional development."
       },
       "source": "mendelu.cz",
+      "bonusFact": {
+        "fi": "Yliopisto on kantanut 1990-luvulta asti Gregor Johann Mendelin nimeä. Perinnöllisyystieteen isä teki kuuluisat kokeensa Brnossa.",
+        "en": "Since the 1990s the university has carried the name of Gregor Johann Mendel. The father of genetics did his famous experiments in Brno."
+      },
+      "bonusSource": "mendelu.cz, en.wikipedia.org",
       "scenery": {
         "far": "hills",
         "mid": "deciduous",

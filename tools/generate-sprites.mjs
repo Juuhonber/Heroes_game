@@ -23,12 +23,21 @@ const C = {
   band: '#f0e558',
   ink: '#08130f',
   limb: '#0a0f0d',
+  /** Kauempana olevat raajat hieman vaaleampia: syvyys erottuu ristikkäin. */
+  limbFar: '#3d4a47',
   cubeTop: '#c9e35a',
 };
 
 const BODY = { x: 95, y: 58, w: 140, h: 142, r: 16, d: 26, dy: 18 };
-const ARM = { y: 116, len: 82, w: 19 };
+const ARM = { y: 116, upper: 46, fore: 40, w: 18 };
 const LEG = { spread: 30, y: BODY.y + BODY.h, thigh: 54, shin: 52, w: 19 };
+/** Maaviiva ruudussa: jalat osuvat tähän, ja peli ankkuroi hahmon tästä. */
+const GROUND = 300;
+const HIP_BACK = [BODY.x + BODY.w / 2 + LEG.spread, LEG.y - 6];
+const HIP_FRONT = [BODY.x + BODY.w / 2 - LEG.spread, LEG.y - 6];
+const SHOULDER_L = [BODY.x - BODY.d + 10, ARM.y - BODY.dy * 0.4];
+const SHOULDER_R = [BODY.x + BODY.w - 4, ARM.y];
+const PIVOT = [165, 200];
 
 // Pikselimaskit kasvoille. '#' = musta pikseli, '.' = läpinäkyvä.
 const EYES = {
@@ -56,30 +65,6 @@ function pixels(mask, x, y, cell) {
     });
   });
   return out;
-}
-
-/** Yksi raaja: murtoviiva pyöristetyin päin. */
-function limb(points, width) {
-  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${r2(p[0])} ${r2(p[1])}`).join(' ');
-  return `<path d="${d}" fill="none" stroke="${C.limb}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
-}
-
-/** Kulma asteina pystysuorasta alaspäin, positiivinen = eteen (oikealle). */
-function segment(origin, angleDeg, length) {
-  const a = (angleDeg * Math.PI) / 180;
-  return [origin[0] + Math.sin(a) * length, origin[1] + Math.cos(a) * length];
-}
-
-function leg(hip, hipAngle, kneeAngle) {
-  const knee = segment(hip, hipAngle, LEG.thigh);
-  const foot = segment(knee, hipAngle + kneeAngle, LEG.shin);
-  return limb([hip, knee, foot], LEG.w);
-}
-
-function arm(shoulder, angle, dir) {
-  const a = (angle * Math.PI) / 180;
-  const elbow = [shoulder[0] + Math.sin(a) * ARM.len * dir, shoulder[1] + Math.cos(a) * ARM.len];
-  return limb([shoulder, elbow], ARM.w);
 }
 
 function floatingCube(x, y, size) {
@@ -136,31 +121,63 @@ function body(pose) {
     </g>`;
 }
 
+/** Raaja: murtoviiva pyöristetyin päin. */
+function limb(points, width, color = C.limb) {
+  const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${r2(p[0])} ${r2(p[1])}`).join(' ');
+  return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+
+/** Kulma asteina pystysuorasta alaspäin, positiivinen = eteen (oikealle). */
+function segment(origin, angleDeg, length) {
+  const a = (angleDeg * Math.PI) / 180;
+  return [origin[0] + Math.sin(a) * length, origin[1] + Math.cos(a) * length];
+}
+
+/**
+ * Jalka: reisi ja sääri. Polvi taipuu kuten ihmisellä: sääri kääntyy
+ * reiteen nähden taaksepäin. (Edellinen versio taivutti polvea eteenpäin,
+ * mikä teki juoksusta lintumaisen.)
+ */
+function legPoints(hip, { T, K }) {
+  const knee = segment(hip, T, LEG.thigh);
+  return [hip, knee, segment(knee, T - K, LEG.shin)];
+}
+
+/** Käsi: olkavarsi ja kyynärvarsi; kulmat maailman suunnassa. */
+function armPoints(shoulder, { U, E }) {
+  const elbow = segment(shoulder, U, ARM.upper);
+  return [shoulder, elbow, segment(elbow, U + E, ARM.fore)];
+}
+
+/** Pisteen kierto kallistuksen keskipisteen ympäri (SVG:n rotate). */
+function rotate([x, y], deg) {
+  const a = (deg * Math.PI) / 180;
+  const dx = x - PIVOT[0];
+  const dy = y - PIVOT[1];
+  return [PIVOT[0] + dx * Math.cos(a) - dy * Math.sin(a), PIVOT[1] + dx * Math.sin(a) + dy * Math.cos(a)];
+}
+
+function feet(pose) {
+  const back = rotate(legPoints(HIP_BACK, pose.back)[2], pose.lean);
+  const front = rotate(legPoints(HIP_FRONT, pose.front)[2], pose.lean);
+  return { back, front };
+}
+
 function mascot(pose) {
-  const lean = pose.lean ?? 0;
-  const bob = pose.bob ?? 0;
-  const leftHip = [BODY.x + BODY.w / 2 - LEG.spread, LEG.y - 6];
-  const rightHip = [BODY.x + BODY.w / 2 + LEG.spread, LEG.y - 6];
-  const leftShoulder = [BODY.x - BODY.d + 10, ARM.y - BODY.dy * 0.4];
-  const rightShoulder = [BODY.x + BODY.w - 4, ARM.y];
-
-  const extras = pose.cube ? floatingCube(250, 44 + pose.cube, 46) : '';
-
+  const extras = pose.cube !== undefined ? floatingCube(250, 44 + pose.cube + pose.dy, 46) : '';
   return `
-  <g transform="translate(0 ${r2(bob)}) rotate(${r2(lean)} 165 200)">
-    ${leg(rightHip, pose.legBack, pose.kneeBack)}
-    ${arm(leftShoulder, pose.armBack, -1)}
-    ${arm(rightShoulder, pose.armFront, 1)}
+  <g transform="translate(0 ${r2(pose.dy)}) rotate(${r2(pose.lean)} ${PIVOT[0]} ${PIVOT[1]})">
+    ${limb(legPoints(HIP_BACK, pose.back), LEG.w, C.limbFar)}
+    ${limb(armPoints(SHOULDER_L, pose.armL), ARM.w, C.limbFar)}
+    ${limb(armPoints(SHOULDER_R, pose.armR), ARM.w)}
     ${body(pose)}
-    ${leg(leftHip, pose.legFront, pose.kneeFront)}
+    ${limb(legPoints(HIP_FRONT, pose.front), LEG.w)}
   </g>
   ${extras}`;
 }
 
 function sheet(name, poses, columns) {
   const rows = Math.ceil(poses.length / columns);
-  const w = columns * F;
-  const h = rows * F;
   const frames = poses
     .map((pose, i) => {
       const cx = (i % columns) * F;
@@ -168,7 +185,7 @@ function sheet(name, poses, columns) {
       return `<g transform="translate(${cx} ${cy})">${mascot(pose)}</g>`;
     })
     .join('\n');
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${columns * F}" height="${rows * F}" viewBox="0 0 ${columns * F} ${rows * F}">
 <title>HEROES mascot - ${name}</title>
 ${frames}
 </svg>`;
@@ -177,25 +194,86 @@ ${frames}
   return { name, columns, rows, frames: poses.length };
 }
 
-// --- Juoksusykli: 8 ruutua, jalat ja kädet vastavaiheessa ---------------
-const runPoses = [];
-for (let i = 0; i < 8; i++) {
-  const t = (i / 8) * Math.PI * 2 + Math.PI / 4;
-  const swing = Math.sin(t);
-  const counter = Math.sin(t + Math.PI);
-  runPoses.push({
-    legFront: swing * 40,
-    legBack: counter * 40,
-    kneeFront: Math.max(0, -swing) * 46 + 6,
-    kneeBack: Math.max(0, -counter) * 46 + 6,
-    armFront: counter * 24 + 42,
-    armBack: swing * 24 + 42,
-    bob: -Math.abs(Math.sin(t * 2)) * 9,
-    lean: 2 + swing * 1.5,
+// --- Juoksusykli ------------------------------------------------------
+// Yhden jalan avainasennot vaiheen p mukaan (0..1). T = reiden kulma
+// pystysuorasta (+ eteen), K = polven koukku. Toinen jalka on puoli
+// sykliä jäljessä. Asennot: kosketus, jousto, keskitukivaihe, työntö,
+// irtoaminen, palautus kantapää pakaraan, polvennosto ja ojennus.
+const LEG_KEYS = [
+  [0.0, 32, 6],
+  [0.12, 14, 26],
+  [0.25, -6, 16],
+  [0.4, -36, 18],
+  [0.52, -30, 70],
+  [0.66, -6, 112],
+  [0.8, 26, 86],
+  [0.92, 44, 34],
+];
+
+/** Syklinen Catmull-Rom-interpolaatio: pehmeä liike avainasentojen välillä. */
+function sampleLeg(p) {
+  const n = LEG_KEYS.length;
+  const phase = ((p % 1) + 1) % 1;
+  let i = n - 1;
+  for (let k = 0; k < n; k++) if (LEG_KEYS[k][0] <= phase) i = k;
+  const at = (k) => LEG_KEYS[((k % n) + n) % n];
+  const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+  const start = p1[0];
+  const end = i + 1 >= n ? 1 : p2[0];
+  const t = (phase - start) / (end - start);
+  const cr = (a, b, c, d) =>
+    0.5 * (2 * b + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (-a + 3 * b - 3 * c + d) * t * t * t);
+  return { T: cr(p0[1], p1[1], p2[1], p3[1]), K: Math.max(0, cr(p0[2], p1[2], p2[2], p3[2])) };
+}
+
+const RUN_FRAMES = 12;
+const RUN_LEAN = 6;
+
+/** Kevyt lentovaihe työnnön jälkeen: kumpikaan jalka ei kosketa maata. */
+const lift = (p) => 6 * Math.max(0, Math.sin(4 * Math.PI * (p - 0.3)));
+
+function runPose(p) {
+  // Kädet vastavaiheessa jalkoihin, kyynärpäät koukussa.
+  const swing = Math.sin(2 * Math.PI * (p + 0.08));
+  const pose = {
+    back: sampleLeg(p + 0.5),
+    front: sampleLeg(p),
+    armR: { U: 34 - 26 * swing, E: 24 },
+    armL: { U: -34 - 26 * swing, E: -20 },
+    lean: RUN_LEAN,
+    dy: 0,
     eyes: 'normal',
     mouth: 'neutral',
-  });
+  };
+  // Alempi jalka osuu maaviivaan: hahmo ei leiju eikä uppoa.
+  const { back, front } = feet(pose);
+  pose.dy = GROUND - Math.max(back[1], front[1]) - lift(p);
+  return pose;
 }
+
+const runPoses = [];
+for (let i = 0; i < RUN_FRAMES; i++) runPoses.push(runPose(i / RUN_FRAMES));
+
+/**
+ * Askelpituus: kuinka paljon tukijalka liikkuu taaksepäin yhden syklin
+ * aikana. Peli toistaa juoksua tällä tahdilla, jolloin jalka pysyy maassa
+ * paikallaan eikä liu'u.
+ */
+function measureCycle() {
+  const steps = 2000;
+  let travel = 0;
+  let prev = null;
+  for (let i = 0; i <= steps; i++) {
+    const pose = runPose(i / steps);
+    const { back, front } = feet(pose);
+    const stance = back[1] > front[1] ? 'back' : 'front';
+    const x = stance === 'back' ? back[0] : front[0];
+    if (prev && prev.stance === stance) travel += Math.max(0, prev.x - x);
+    prev = { stance, x };
+  }
+  return travel;
+}
+const CYCLE_PX = measureCycle();
 
 // --- Idle: 4 ruutua, kevyt hengitys ja leijuva kuutio -------------------
 const idleEyes = ['normal', 'normal', 'sparkle', 'blink'];
@@ -203,47 +281,51 @@ const idleMouths = ['neutral', 'open', 'smile', 'smile'];
 const idlePoses = [];
 for (let i = 0; i < 4; i++) {
   const t = (i / 4) * Math.PI * 2;
-  idlePoses.push({
-    legFront: 9,
-    legBack: -11,
-    kneeFront: 5,
-    kneeBack: 5,
-    armFront: 40 + Math.sin(t) * 5,
-    armBack: 42 + Math.sin(t) * 5,
-    bob: -Math.abs(Math.sin(t)) * 5,
+  const pose = {
+    back: { T: -7, K: 4 },
+    front: { T: 8, K: 4 },
+    armR: { U: 34 + Math.sin(t) * 5, E: -8 },
+    armL: { U: -34 - Math.sin(t) * 5, E: 8 },
     lean: 0,
+    dy: 0,
     cube: Math.sin(t + 1) * 8,
     eyes: idleEyes[i],
     mouth: idleMouths[i],
-  });
+  };
+  const { back, front } = feet(pose);
+  pose.dy = GROUND - Math.max(back[1], front[1]) - Math.abs(Math.sin(t)) * 4;
+  idlePoses.push(pose);
 }
 
-// --- Hyppy: nousu ja lasku ---------------------------------------------
+// --- Hyppy: nousu (polvet koukussa) ja lasku (jalat valmiina) -------------
+const runDy = runPoses.reduce((sum, pose) => sum + pose.dy, 0) / runPoses.length;
 const jumpPoses = [
   {
-    legFront: 30, legBack: -26, kneeFront: 54, kneeBack: 18,
-    armFront: -34, armBack: -28, bob: -6, lean: -4,
-    eyes: 'wide', mouth: 'open',
+    back: { T: 18, K: 96 },
+    front: { T: 58, K: 104 },
+    armR: { U: 140, E: 24 },
+    armL: { U: -140, E: -24 },
+    lean: 4,
+    dy: runDy - 14,
+    eyes: 'wide',
+    mouth: 'open',
   },
   {
-    legFront: 20, legBack: -34, kneeFront: 18, kneeBack: 40,
-    armFront: 46, armBack: 40, bob: 2, lean: 5,
-    eyes: 'wide', mouth: 'open',
+    back: { T: -14, K: 34 },
+    front: { T: 30, K: 42 },
+    armR: { U: 84, E: 24 },
+    armL: { U: -84, E: -24 },
+    lean: 2,
+    dy: runDy - 6,
+    eyes: 'wide',
+    mouth: 'neutral',
   },
 ];
 
 // --- Törmäys ------------------------------------------------------------
 const hurtPoses = [
-  {
-    legFront: -30, legBack: 26, kneeFront: 30, kneeBack: 22,
-    armFront: -62, armBack: -58, bob: -4, lean: -12,
-    eyes: 'blink', mouth: 'open',
-  },
-  {
-    legFront: -40, legBack: 34, kneeFront: 42, kneeBack: 30,
-    armFront: -70, armBack: -66, bob: 6, lean: -18,
-    eyes: 'blink', mouth: 'open',
-  },
+  { back: { T: -40, K: 20 }, front: { T: -25, K: 30 }, armR: { U: 150, E: -30 }, armL: { U: -150, E: 30 }, lean: -12, dy: runDy - 4, eyes: 'blink', mouth: 'open' },
+  { back: { T: -48, K: 30 }, front: { T: -32, K: 42 }, armR: { U: 165, E: -40 }, armL: { U: -165, E: 40 }, lean: -18, dy: runDy + 6, eyes: 'blink', mouth: 'open' },
 ];
 
 const sheets = [
@@ -253,23 +335,35 @@ const sheets = [
   sheet('mascot_hurt', hurtPoses, 2),
 ];
 
-// Keräiltävä kuutio omana spritenään.
+// Keräiltävä kuutio omana spritenään (kartan ja palautekortin koristeena).
 const token = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
 <title>HEROES token</title>
 <g transform="translate(6 30)">${floatingCube(0, 12, 62)}</g>
 </svg>`;
 writeFileSync(resolve(outDir, 'token.svg'), token);
 
+const clip = (src, columns, frames, fps, loop, extra = {}) => ({
+  src,
+  frameWidth: F,
+  frameHeight: F,
+  columns,
+  frames,
+  fps,
+  loop,
+  footY: GROUND,
+  ...extra,
+});
+
 writeFileSync(
   resolve(outDir, 'sprites.json'),
   JSON.stringify(
     {
-      note: 'Ruudut luetaan riveittäin vasemmalta oikealle. frameWidth/-Height ovat lähdekuvan pikseleitä.',
+      note: 'Ruudut luetaan riveittäin vasemmalta oikealle. footY = jalkojen maaviiva ruudussa. cyclePx = matka, jonka hahmo etenee yhden juoksusyklin aikana (ruudun pikseleinä); peli sovittaa toistonopeuden juoksuvauhtiin.',
       clips: {
-        idle: { src: 'sprites/mascot_idle.svg', frameWidth: F, frameHeight: F, columns: 2, frames: 4, fps: 5, loop: true },
-        run: { src: 'sprites/mascot_run.svg', frameWidth: F, frameHeight: F, columns: 4, frames: 8, fps: 15, loop: true },
-        jump: { src: 'sprites/mascot_jump.svg', frameWidth: F, frameHeight: F, columns: 2, frames: 2, fps: 6, loop: false },
-        hurt: { src: 'sprites/mascot_hurt.svg', frameWidth: F, frameHeight: F, columns: 2, frames: 2, fps: 8, loop: false },
+        idle: clip('sprites/mascot_idle.svg', 2, 4, 5, true),
+        run: clip('sprites/mascot_run.svg', 4, RUN_FRAMES, 24, true, { cyclePx: Math.round(CYCLE_PX * 10) / 10 }),
+        jump: clip('sprites/mascot_jump.svg', 2, 2, 6, false),
+        hurt: clip('sprites/mascot_hurt.svg', 2, 2, 8, false),
       },
     },
     null,
@@ -278,5 +372,6 @@ writeFileSync(
 );
 
 console.log(
-  sheets.map((s) => `${s.name}.svg: ${s.frames} ruutua (${s.columns}x${s.rows})`).join('\n'),
+  sheets.map((s) => `${s.name}.svg: ${s.frames} ruutua (${s.columns}x${s.rows})`).join('\n') +
+    `\njuoksusykli ${CYCLE_PX.toFixed(1)} px`,
 );

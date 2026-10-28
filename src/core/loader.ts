@@ -7,6 +7,10 @@ export interface ClipDef {
   frames: number;
   fps: number;
   loop: boolean;
+  /** Jalkojen maaviiva ruudussa (lähdepikseleinä). */
+  footY?: number;
+  /** Juoksusyklin aikana edetty matka lähdepikseleinä: toistonopeus sovitetaan vauhtiin. */
+  cyclePx?: number;
 }
 
 export interface SpriteManifest {
