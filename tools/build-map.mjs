@@ -2,7 +2,7 @@
  * Rakentaa Euroopan kartan geometrian pelin staattiseksi aineistoksi.
  *
  * Lähde: Natural Earth (public domain) npm-paketin world-atlas kautta.
- * Tuloste: public/data/europe.json, joka sisältää maiden rajapolygonit
+ * Tuloste: src/assets/data/europe.json, joka sisältää maiden rajapolygonit
  * asteina (lon/lat). Projektio tehdään ajonaikaisesti selaimessa.
  */
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -131,8 +131,8 @@ const out = {
   countries,
 };
 
-mkdirSync(resolve(root, 'public/data'), { recursive: true });
-const file = resolve(root, 'public/data/europe.json');
+mkdirSync(resolve(root, 'src/assets/data'), { recursive: true });
+const file = resolve(root, 'src/assets/data/europe.json');
 writeFileSync(file, JSON.stringify(out));
 const points = countries.reduce((n, c) => n + c.rings.reduce((m, r) => m + r.length, 0), 0);
 console.log(

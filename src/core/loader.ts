@@ -23,12 +23,6 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
   });
 }
 
-export async function loadJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Aineistoa ei voitu ladata: ${url} (${res.status})`);
-  return (await res.json()) as T;
-}
-
 /**
  * Lataa joukon tehtäviä ja raportoi edistymisen. Tehtävät ajetaan rinnakkain,
  * jotta messukoneen lataus pysyy lyhyenä.

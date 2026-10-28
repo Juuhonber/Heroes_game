@@ -7,11 +7,32 @@ toiminnolla ja saa lopuksi tietokortin kohteesta. Peli ei kerää mitään tieto
 pelaajasta eikä tallenna etenemää: jokainen ohikulkija aloittaa puhtaalta
 pöydältä, ja käyttämättömänä peli palaa itsestään aloitusnäkymään.
 
-## Käyttöönotto
+## Pelaaminen ilman asennuksia
 
-Windowsissa helpoin tapa on tuplaklikata tiedostoa `kaynnista-peli.bat`. Se
-asentaa tarvittavat paketit ensimmäisellä kerralla ja avaa pelin selaimeen.
-Koneella pitää olla Node.js (LTS-versio osoitteesta nodejs.org).
+Valmis peli on kansiossa `release/`. Se ei tarvitse Nodea, palvelinta eikä
+nettiyhteyttä: koko peli on yhdessä tiedostossa `heroes-peli.html`, jonka voi
+avata millä tahansa selaimella tuplaklikkaamalla. Kansion voi kopioida
+USB-tikulle tai jakaa ZIP-tiedostona.
+
+| Tiedosto | Käyttö |
+| --- | --- |
+| `heroes-peli.html` | tuplaklikkaus avaa pelin oletusselaimeen |
+| `kaynnista-messukone.bat` | Edge koko näytön kioskitilaan ilman palkkeja (lopetus Alt+F4) |
+| `kaynnista-ikkunassa.bat` | Edge omaan ikkunaansa ilman osoitepalkkia |
+| `campus/` | vapaaehtoiset kampuskuvat (ks. Kampuskuvat) |
+
+Microsoft Edge on valmiina Windows 10- ja 11-koneissa. Jos Edgeä ei löydy,
+käynnistystiedostot avaavat pelin oletusselaimeen.
+
+Julkaisupaketti päivitetään koodimuutosten jälkeen komennolla
+`npm run release`. Se kääntää pelin, upottaa skriptin, datan ja spritet
+HTML-tiedostoon ja kirjoittaa kansion `release/` uudelleen.
+
+## Kehitysympäristö
+
+Kehitystä varten koneella pitää olla Node.js (LTS-versio osoitteesta
+nodejs.org). Windowsissa kehityspalvelimen saa käyntiin tuplaklikkaamalla
+tiedostoa `kaynnista-peli.bat`; se asentaa paketit ensimmäisellä kerralla.
 
 Komentoriviltä:
 
@@ -20,15 +41,15 @@ npm install
 npm run dev      # kehityspalvelin, avaa pelin selaimeen
 npm test         # pelilogiikan testit
 npm run build    # tuotantoversio hakemistoon dist/
+npm run release  # yhden tiedoston julkaisupaketti hakemistoon release/
 npm run preview  # tuotantoversion tarkistus paikallisesti
 npm run assets   # generoi kartan ja spritet uudelleen (tarvitaan harvoin)
 ```
 
-Tuotantoversio on staattinen: `dist/`-hakemiston voi kopioida mille tahansa
-web-palvelimelle. `vite.config.ts` käyttää suhteellista `base`-polkua, joten
-peli toimii myös alihakemistosta tarjoiltuna. Messukoneella kannattaa avata
-selain kioskitilassa ja painaa ruudun oikean yläkulman ⛶-painiketta, joka
-siirtää pelin koko näytön tilaan.
+Sekä `dist/` että `release/` ovat staattisia, joten ne voi myös julkaista
+mille tahansa web-palvelimelle. Pelin data ja kuvat on pakattu koodiin
+käännösvaiheessa (`src/assets/`), koska selain estää tiedostohaut levyltä
+avatulla sivulla.
 
 ## Ohjaus
 
@@ -76,6 +97,7 @@ src/game     pelilogiikka (RunSim), fysiikka, radan generointi, maisemat, voimat
 src/states   kartta, minipeli, palauteruutu
 src/ui       painikkeet, teemavärit, tekstit kahdella kielellä
 src/data     kohde-, kartta- ja kampuskuvatietomallit
+src/assets   peliin pakattava data ja spritet (generaattorit kirjoittavat tänne)
 tests        pelilogiikan testit (vitest)
 tools        aineistogeneraattorit (kartta, spritet)
 public       valmis aineisto, jonka generaattorit tuottavat
@@ -83,7 +105,7 @@ public       valmis aineisto, jonka generaattorit tuottavat
 
 ## Sisällön muokkaus
 
-Kohteet ovat tiedostossa `public/data/destinations.json`. Jokaisella kohteella
+Kohteet ovat tiedostossa `src/assets/data/destinations.json`. Jokaisella kohteella
 on nimi, kaupunki, koordinaatit, vahvuusalue, tietokortin fakta lähdeviitteineen
 sekä radan visuaaliset parametrit. Faktakentät perustuvat kunkin korkeakoulun
 omiin sivuihin, ja `source`-kenttä kertoo mistä luku on peräisin. Vahvuusalue
@@ -104,18 +126,22 @@ ja Pyhän Rumoldin torni ja niin edelleen.
 
 ## Kampuskuvat
 
-Oikean kampuskuvan saa radan taustaksi ilman koodimuutoksia:
+Oikean kampuskuvan saa radan taustaksi ilman koodimuutoksia ja ilman
+uudelleenkääntämistä:
 
-1. Kopioi kuva kansioon `public/campus/`, esimerkiksi `public/campus/seamk.jpg`.
-2. Lisää rivi tiedostoon `public/campus/campus.json`:
+1. Kopioi kuva kansioon `release/campus/` (kehitysympäristössä `public/campus/`),
+   esimerkiksi `seamk.jpg`.
+2. Lisää rivi saman kansion tiedostoon `campus.js`:
 
-```json
-{
-  "seamk": { "file": "seamk.jpg", "credit": "SeAMK / Kuvaajan nimi", "source": "seamk.fi" }
-}
+```js
+window.HEROES_CAMPUS = {
+  seamk: { file: 'seamk.jpg', credit: 'SeAMK / Kuvaajan nimi', source: 'seamk.fi' },
+};
 ```
 
-Avain on kohteen `id` tiedostosta `destinations.json`. Kuva täyttää taivaan,
+Avain on kohteen `id` tiedostosta `src/assets/data/destinations.json`.
+Luettelo on tavallinen skripti eikä JSON, koska selain lataa skriptejä ja
+kuvia myös levyltä avatulle sivulle mutta estää muut tiedostohaut. Kuva täyttää taivaan,
 panoroi hitaasti juoksun aikana ja sävytetään kohteen värimaailmaan.
 Kaukainen maisemakerros ja maamerkki väistyvät kuvan tieltä, lähin kerros jää
 eteen. `credit` näkyy pelissä ja palautekortilla, joten lisenssin vaatima
@@ -129,7 +155,7 @@ CC BY-SA, jolloin tekijä ja lisenssi merkitään `credit`-kenttään).
 ## Spritet
 
 `tools/generate-sprites.mjs` piirtää maskotin animaatioarkit SVG:nä ja
-kirjoittaa `public/sprites/sprites.json`-kuvauksen, jossa kerrotaan jokaisen
+kirjoittaa `src/assets/sprites/sprites.json`-kuvauksen, jossa kerrotaan jokaisen
 animaation ruutukoko, sarakemäärä, ruutujen määrä ja toistonopeus. Peli lataa
 arkit ja leikkaa ne ruuduiksi luokassa `SpriteSheet`: ruudut luetaan riveittäin
 vasemmalta oikealle, joten indeksi 0 on vasen ylänurkka.
@@ -143,7 +169,7 @@ ruutukokoa ja sarakemäärää. Nykyiset arkit ovat juoksu (8 ruutua), idle
 
 `tools/build-map.mjs` poimii Euroopan maiden rajat Natural Earth -aineistosta
 (public domain, npm-paketti `world-atlas`), leikkaa ne näkymän rajaukseen ja
-kirjoittaa tuloksen tiedostoon `public/data/europe.json`. Peli projisoi
+kirjoittaa tuloksen tiedostoon `src/assets/data/europe.json`. Peli projisoi
 koordinaatit Mercator-projektiolla ajonaikaisesti, joten karttanäkymän rajausta
 voi muuttaa muokkaamalla `VIEW_BOUNDS`-arvoa tiedostossa `src/states/MapState.ts`.
 

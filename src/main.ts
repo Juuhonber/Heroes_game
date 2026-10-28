@@ -2,10 +2,28 @@ import { Game } from './core/Game';
 import type { GameAssets } from './core/Game';
 import { makeClip } from './core/Animator';
 import type { Clip } from './core/Animator';
-import { assetUrl, loadAll, loadImage, loadJson } from './core/loader';
+import { loadAll, loadImage } from './core/loader';
 import type { SpriteManifest } from './core/loader';
-import { loadContent } from './data/destinations';
-import { loadEurope } from './data/europe';
+import { CONTENT } from './data/destinations';
+import { EUROPE } from './data/europe';
+import spriteManifest from './assets/sprites/sprites.json';
+
+/**
+ * Spritet pakataan koodiin data-osoitteina (vite.config: assetsInlineLimit),
+ * joten yksittäinen HTML-tiedosto toimii ilman erillisiä kuvatiedostoja.
+ */
+const spriteUrls = import.meta.glob<string>('./assets/sprites/*.svg', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+
+function spriteUrl(file: string): string {
+  const name = file.split('/').pop()!;
+  const url = spriteUrls[`./assets/sprites/${name}`];
+  if (!url) throw new Error(`Spriteä ei löydy: ${name}`);
+  return url;
+}
 import { CampusPhotos } from './data/campus';
 import { MapState } from './states/MapState';
 import { PlayState } from './states/PlayState';
@@ -22,20 +40,18 @@ async function start(): Promise<void> {
   const canvas = document.getElementById('stage');
   if (!(canvas instanceof HTMLCanvasElement)) throw new Error('Canvas-elementtiä ei löytynyt.');
 
-  const manifest = await loadJson<SpriteManifest>(assetUrl('sprites/sprites.json'));
+  const manifest = spriteManifest as SpriteManifest;
 
   const clipNames = Object.keys(manifest.clips);
   const campus = new CampusPhotos();
   const loaded = await loadAll(
     {
-      content: loadContent(),
-      europe: loadEurope(),
-      token: loadImage(assetUrl('sprites/token.svg')),
+      token: loadImage(spriteUrl('token.svg')),
       campus: campus.init(),
       sheets: Promise.all(
         clipNames.map(async (name) => {
           const def = manifest.clips[name]!;
-          return [name, await loadImage(assetUrl(def.src))] as const;
+          return [name, await loadImage(spriteUrl(def.src))] as const;
         }),
       ),
     },
@@ -50,9 +66,9 @@ async function start(): Promise<void> {
   const assets: GameAssets = {
     clips,
     token: loaded.token,
-    destinations: loaded.content.destinations,
-    alliance: loaded.content.alliance,
-    europe: loaded.europe,
+    destinations: CONTENT.destinations,
+    alliance: CONTENT.alliance,
+    europe: EUROPE,
     campus,
   };
 

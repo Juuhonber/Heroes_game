@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
-const outDir = resolve(root, 'public/sprites');
+const outDir = resolve(root, 'src/assets/sprites');
 
 const F = 320; // ruudun leveys ja korkeus
 

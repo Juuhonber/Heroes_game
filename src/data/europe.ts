@@ -1,4 +1,4 @@
-import { assetUrl, loadJson } from '../core/loader';
+import europeJson from '../assets/data/europe.json';
 
 export interface EuropeMap {
   source: string;
@@ -6,9 +6,7 @@ export interface EuropeMap {
   countries: { name: string; rings: [number, number][][] }[];
 }
 
-export function loadEurope(): Promise<EuropeMap> {
-  return loadJson<EuropeMap>(assetUrl('data/europe.json'));
-}
+export const EUROPE = europeJson as unknown as EuropeMap;
 
 /**
  * Mercator-projektio. Riittävä Euroopan mittakaavassa ja pitää maat

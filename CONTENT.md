@@ -23,7 +23,7 @@ Lähde: heroesuniversity.eu.
 Kohteille merkitty vahvuusalue (yhteisöllisyys, innovaatiot, kestävyys,
 digitaalisuus) on pelin sisällöllinen kehys ja teemaväri. Se ei ole allianssin
 virallinen työnjako, ja sen voi vaihtaa vapaasti tiedostossa
-`public/data/destinations.json`.
+`src/assets/data/destinations.json`.
 
 ## Maisemat ja maamerkit
 

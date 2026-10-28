@@ -1,0 +1,20 @@
+HEROES-messupeli
+================
+
+Peli ei tarvitse asennusta, Nodea eikä nettiyhteyttä. Pidä tiedostot
+samassa kansiossa.
+
+Pelaaminen
+  Tuplaklikkaa heroes-peli.html. Peli aukeaa selaimeen.
+
+Messukone
+  Tuplaklikkaa kaynnista-messukone.bat. Peli aukeaa Edgeen koko naytolle
+  ilman selaimen palkkeja. Lopetus: Alt+F4.
+  Peli palaa itsestaan karttanakymaan 45 sekunnin kayttamattomyyden jalkeen.
+
+Omassa ikkunassa
+  Tuplaklikkaa kaynnista-ikkunassa.bat.
+
+Kampuskuvat (vapaaehtoinen)
+  Kopioi kuva kansioon campus ja lisaa siita rivi tiedostoon
+  campus/campus.js. Ohje on tiedoston alussa. Kaannosta ei tarvita.

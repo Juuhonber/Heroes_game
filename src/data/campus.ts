@@ -1,10 +1,10 @@
-import { assetUrl, loadImage, loadJson } from '../core/loader';
+import { assetUrl, loadImage } from '../core/loader';
 
 /**
  * Kampuskuvat ovat vapaaehtoisia. Kuva otetaan käyttöön lisäämällä tiedosto
- * kansioon public/campus/ ja rivi tiedostoon public/campus/campus.json:
- *
- *   { "seamk": { "file": "seamk.jpg", "credit": "SeAMK", "source": "seamk.fi" } }
+ * pelin viereiseen campus/-kansioon ja rivi tiedostoon campus/campus.js.
+ * Luettelo on tavallinen skripti eikä JSON, koska selain lataa skriptejä ja
+ * kuvia myös levyltä avatulle sivulle mutta estää fetch-haut.
  *
  * Ilman kuvaa kohde käyttää maisemasiluetteja. Kuvan tekijä näytetään pelissä,
  * joten lisenssin vaatima nimeäminen hoituu samalla.
@@ -35,11 +35,7 @@ export class CampusPhotos {
   private slots = new Map<string, Slot>();
 
   async init(): Promise<void> {
-    try {
-      this.entries = await loadJson<Record<string, CampusEntry>>(assetUrl('campus/campus.json'));
-    } catch {
-      this.entries = {};
-    }
+    this.entries = await loadCampusList();
   }
 
   has(id: string): boolean {
@@ -84,4 +80,21 @@ function downscale(img: HTMLImageElement, entry: CampusEntry): CampusPhoto {
   ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return { image: canvas, width: canvas.width, height: canvas.height, entry };
+}
+
+declare global {
+  interface Window {
+    HEROES_CAMPUS?: Record<string, CampusEntry>;
+  }
+}
+
+/** Puuttuva tai rikkinäinen luettelo tarkoittaa vain, ettei kuvia ole. */
+function loadCampusList(): Promise<Record<string, CampusEntry>> {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = assetUrl('campus/campus.js');
+    script.onload = () => resolve(window.HEROES_CAMPUS ?? {});
+    script.onerror = () => resolve({});
+    document.head.appendChild(script);
+  });
 }

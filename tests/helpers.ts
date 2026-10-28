@@ -1,4 +1,4 @@
-import content from '../public/data/destinations.json';
+import content from '../src/assets/data/destinations.json';
 import type { Destination } from '../src/data/destinations';
 import { RunSim } from '../src/game/RunSim';
 import type { RunPhase, RunSimOptions } from '../src/game/RunSim';

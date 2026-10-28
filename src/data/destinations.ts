@@ -1,4 +1,4 @@
-import { assetUrl, loadJson } from '../core/loader';
+import contentJson from '../assets/data/destinations.json';
 
 /**
  * Vahvuusalueet ovat allianssin teemoja. Kohdekohtainen vahvuus on pelin
@@ -96,9 +96,11 @@ export interface ContentFile {
   destinations: Destination[];
 }
 
-export function loadContent(): Promise<ContentFile> {
-  return loadJson<ContentFile>(assetUrl('data/destinations.json'));
-}
+/**
+ * Sisältö pakataan pelin koodiin käännösvaiheessa. Näin peli toimii myös
+ * yhtenä HTML-tiedostona suoraan levyltä, jossa selain ei salli hakuja.
+ */
+export const CONTENT = contentJson as unknown as ContentFile;
 
 export const STRENGTH_COLORS: Record<Strength, string> = {
   community: '#ffb454',

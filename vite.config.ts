@@ -7,7 +7,9 @@ export default defineConfig({
   build: {
     target: 'es2022',
     outDir: 'dist',
-    assetsInlineLimit: 0,
+    // Kaikki kuvat ja data pakataan koodiin, jotta tools/build-single.mjs
+    // voi koota pelistä yhden itsenäisen HTML-tiedoston.
+    assetsInlineLimit: 100_000_000,
   },
   server: {
     host: true,
