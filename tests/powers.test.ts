@@ -20,7 +20,7 @@ function run(sim: RunSim, seconds: number): SimEvent[] {
 
 /** Piikkirivi ja kuoppa pelaajan edessä. */
 function hazards(sim: RunSim): void {
-  for (let i = 0; i < 3; i++) sim.level.spikes.push({ x: 600 + i * BLOCK, base: GROUND_Y, hit: false, grown: false });
+  for (let i = 0; i < 3; i++) sim.level.spikes.push({ x: 600 + i * BLOCK, base: GROUND_Y, down: false, hit: false, grown: false });
   sim.level.pits.push({ x: 1100, w: 200, bridged: false });
 }
 
@@ -111,7 +111,7 @@ describe('supervoimat', () => {
 
   it('raketti ei laskeudu esteen päälle eikä kerää oppimiskokonaisuutta', () => {
     const sim = emptyRun('innovation');
-    for (let x = 1000; x < 1700; x += 120) sim.level.spikes.push({ x, base: GROUND_Y, hit: false, grown: false });
+    for (let x = 1000; x < 1700; x += 120) sim.level.spikes.push({ x, base: GROUND_Y, down: false, hit: false, grown: false });
     sim.level.pickups.push({ x: 800, y: GROUND_Y - 4.3 * BLOCK, kind: 'module', taken: false });
     sim.press('power');
     run(sim, 4);

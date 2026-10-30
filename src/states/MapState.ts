@@ -57,7 +57,7 @@ export class MapState implements GameState {
           new Button({
             id: d.id,
             label: `${d.name}${this.game.stamps.has(d.id) ? '  ✓' : ''}${this.game.modules.has(d.id) ? '  ★' : ''}`,
-            sublabel: `${d.city}, ${localized(d.country)} · ${strings.strengths[d.strength]}`,
+            sublabel: `${d.city}, ${localized(d.country)} · ${localized(d.level.title)}`,
             x: PANEL.x,
             y: PANEL.y + i * (h + gap),
             w: PANEL.w,

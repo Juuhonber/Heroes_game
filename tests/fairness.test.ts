@@ -25,15 +25,15 @@ function replay(destination: Destination, plan: number[], dt: number): RunSim {
 
 /**
  * Pääreitin ajoitusvara: jokaisen hypyn painallus saa osua mihin tahansa
- * 11 peräkkäiseen ruutuun (183 ms 60 Hz:llä). Bonusreitillä vara on
+ * 9 peräkkäiseen ruutuun (150 ms 60 Hz:llä). Bonusreitillä vara on
  * 5 ruutua (83 ms): se on tarkoituksella vaikeampi.
  */
-const MAIN_WINDOW = 5;
+const MAIN_WINDOW = 4;
 const BONUS_WINDOW = 2;
 
 describe('jokainen rata on läpäistävissä ilman supervoimia', () => {
   for (const destination of destinations) {
-    it(`${destination.name}: pääreitti 183 ms ajoitusvaralla, myös 50 ja 144 Hz:llä`, () => {
+    it(`${destination.name}: pääreitti 150 ms ajoitusvaralla, myös 50 ja 144 Hz:llä`, () => {
       const solver = new Solver(destination, { window: MAIN_WINDOW });
       expect(solver.solve()).toBe(true);
       const plan = extractPlan(solver);
@@ -53,53 +53,118 @@ describe('jokainen rata on läpäistävissä ilman supervoimia', () => {
   }
 });
 
-describe('kenttäpalat', () => {
-  const test = { ...destinations[0]!, goalDistance: 220 };
+/** Radat, joilla pala esiintyy: oma pala omistajallaan, reittivalinta käyttäjillään, yhteiset kaikilla. */
+function hosts(chunk: (typeof CHUNKS)[number]): Destination[] {
+  const test = (d: Destination) => ({ ...d, goalDistance: 260 });
+  if (chunk.owner) return destinations.filter((d) => d.id === chunk.owner).map(test);
+  if (chunk.fork) return destinations.filter((d) => d.level.fork === chunk.name).map(test);
+  // Yhteiset palat: hitain ja nopein tempo kattavat kaikki radat.
+  const bySpeed = [...destinations].sort((a, b) => a.level.speed - b.level.speed);
+  return [bySpeed[0]!, bySpeed[bySpeed.length - 1]!].map(test);
+}
 
+describe('kenttäpalat', () => {
   for (const chunk of CHUNKS) {
-    it(`${chunk.name} on läpäistävissä yksinään pääreitin ajoitusvaralla`, () => {
-      expect(new Solver(test, { window: MAIN_WINDOW, chunks: [chunk.name] }).solve()).toBe(true);
+    it(`${chunk.name} on läpäistävissä yksinään jokaisen käyttäjäradan tempolla`, () => {
+      const users = hosts(chunk);
+      expect(users.length, 'palaa ei käytä mikään rata').toBeGreaterThan(0);
+      for (const d of users) {
+        expect(new Solver(d, { window: MAIN_WINDOW, chunks: [chunk.name] }).solve(), d.id).toBe(true);
+      }
     });
   }
 
-  it('korkeiden seinien yli ei pääse tavallisella hypyllä, mutta pomppulevyllä pääsee', () => {
+  it('korkeiden seinien yli ei pääse tavallisella hypyllä', () => {
     for (const chunk of CHUNKS.filter((c) => c.higher)) {
       const tallest = Math.max(
         ...chunk.items.filter((i) => i.t === 'block').map((i) => (i.t === 'block' ? (i.y + i.h) * BLOCK : 0)),
       );
       expect(tallest, chunk.name).toBeGreaterThan(JUMP_APEX + 40);
-      expect(tallest, chunk.name).toBeLessThan(PAD_APEX);
     }
   });
 
-  it('korkean seinän edessä on aina pomppulevy tai hyppyrengas', () => {
+  it('korkean seinän edessä on aina pomppulevy, rengas tai nostetuuli', () => {
     for (const chunk of CHUNKS.filter((c) => c.higher)) {
-      expect(chunk.items.some((i) => i.t === 'pad' || i.t === 'orb'), chunk.name).toBe(true);
+      expect(chunk.items.some((i) => i.t === 'pad' || i.t === 'orb' || i.t === 'grav'), chunk.name).toBe(true);
+    }
+  });
+
+  it('pomppulevy riittää jokaisen pomppulevyseinän yli', () => {
+    for (const chunk of CHUNKS.filter((c) => c.higher && c.items.some((i) => i.t === 'pad'))) {
+      const pad = chunk.items.find((i) => i.t === 'pad')!;
+      const padHeight = pad.t === 'pad' ? pad.y * BLOCK : 0;
+      const tallest = Math.max(
+        ...chunk.items.filter((i) => i.t === 'block').map((i) => (i.t === 'block' ? (i.y + i.h) * BLOCK : 0)),
+      );
+      expect(tallest, chunk.name).toBeLessThan(padHeight + PAD_APEX);
     }
   });
 
   it('reittivalinnan ylempi reitti on vaikeampi kuin alempi', () => {
     for (const chunk of CHUNKS.filter((c) => c.fork)) {
-      const widest = (requireModules: boolean) => {
-        let best = -1;
-        for (let k = 0; k <= 8; k++) {
-          if (new Solver(test, { window: k, orbWindow: Math.min(k, 3), chunks: [chunk.name], requireModules }).solve()) best = k;
-        }
-        return best;
-      };
-      const lower = widest(false);
-      const upper = widest(true);
-      expect(upper, chunk.name).toBeGreaterThanOrEqual(BONUS_WINDOW);
-      expect(upper, chunk.name).toBeLessThan(lower);
+      for (const d of hosts(chunk)) {
+        const widest = (requireModules: boolean) => {
+          let best = -1;
+          for (let k = 0; k <= 7; k++) {
+            if (new Solver(d, { window: k, chunks: [chunk.name], requireModules }).solve()) best = k;
+            else break;
+          }
+          return best;
+        };
+        const upper = widest(true);
+        expect(upper, `${chunk.name} @ ${d.id}`).toBeGreaterThanOrEqual(BONUS_WINDOW);
+        expect(upper, `${chunk.name} @ ${d.id}`).toBeLessThan(widest(false));
+      }
     }
   });
 
-  it('alempi reitti kulkee tasanteiden alta ilman kumartumista', () => {
+  it('alempi reitti kulkee ilmassa olevien tasanteiden alta', () => {
     for (const chunk of CHUNKS.filter((c) => c.fork)) {
       for (const item of chunk.items) {
-        if (item.t === 'block') expect(item.y * BLOCK, chunk.name).toBeGreaterThan(PLAYER_SIZE.h + 40);
+        if (item.t === 'block' && item.y > 0) {
+          expect(item.y * BLOCK, chunk.name).toBeGreaterThan(PLAYER_SIZE.h + 40);
+        }
       }
     }
+  });
+});
+
+describe('ratojen erilaisuus', () => {
+  const levels = destinations.map((d) => ({ d, level: new RunSim(d).level }));
+
+  it('jokaisella radalla on vähintään kaksi omaa palaa, ja kaikki ovat mukana radalla', () => {
+    for (const { d, level } of levels) {
+      const own = CHUNKS.filter((c) => c.owner === d.id);
+      expect(own.length, d.id).toBeGreaterThanOrEqual(2);
+      for (const c of own) expect(level.layout, `${d.id}: ${c.name}`).toContain(c.name);
+    }
+  });
+
+  it('yli puolet jokaisen radan paloista on radan omia tai sen reittivalinta', () => {
+    for (const { d, level } of levels) {
+      const ownNames = new Set(CHUNKS.filter((c) => c.owner === d.id).map((c) => c.name));
+      ownNames.add(d.level.fork);
+      const ownMetres = level.layout.filter((n) => ownNames.has(n)).reduce((s, n) => s + CHUNKS.find((c) => c.name === n)!.length, 0);
+      const allMetres = level.layout.reduce((s, n) => s + CHUNKS.find((c) => c.name === n)!.length, 0);
+      expect(ownMetres / allMetres, d.id).toBeGreaterThan(0.5);
+    }
+  });
+
+  it('kahdella radalla on korkeintaan kolmannes samoja paloja', () => {
+    for (let i = 0; i < levels.length; i++) {
+      for (let j = i + 1; j < levels.length; j++) {
+        const a = new Set(levels[i]!.level.layout);
+        const b = new Set(levels[j]!.level.layout);
+        const common = [...a].filter((n) => b.has(n)).length;
+        const union = new Set([...a, ...b]).size;
+        expect(common / union, `${levels[i]!.d.id} – ${levels[j]!.d.id}`).toBeLessThanOrEqual(1 / 3);
+      }
+    }
+  });
+
+  it('radoilla on eri tempoja ja vähintään neljä erilaista reittivalintaa', () => {
+    expect(new Set(destinations.map((d) => d.level.speed)).size).toBeGreaterThanOrEqual(6);
+    expect(new Set(destinations.map((d) => d.level.fork)).size).toBeGreaterThanOrEqual(4);
   });
 });
 

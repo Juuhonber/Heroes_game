@@ -29,7 +29,7 @@ type Dict = {
   module: string;
   moduleDone: string;
   moduleTeaser: string;
-  signs: { fork: string; pad: string; orb: string };
+  signs: { fork: string; pad: string; orb: string; speed: string; grav: string; ceiling: string };
   noCharge: string;
   tryPower: string;
   jumpPrompt: string;
@@ -76,7 +76,14 @@ const fi: Dict = {
   module: 'Oppimiskokonaisuus',
   moduleDone: 'Oppimiskokonaisuus suoritettu',
   moduleTeaser: 'Ylemmältä reitiltä löytyy oppimiskokonaisuus (+5 op) ja bonusfakta.',
-  signs: { fork: 'Oppimiskokonaisuus 5 op', pad: 'Pomppulevy', orb: 'Paina renkaassa!' },
+  signs: {
+    fork: 'Oppimiskokonaisuus 5 op',
+    pad: 'Pomppulevy',
+    orb: 'Paina renkaassa!',
+    speed: 'Vauhti kiihtyy!',
+    grav: 'Nostetuuli: hyppy kantaa!',
+    ceiling: 'Varo kattoa!',
+  },
   noCharge: 'Kerää opintopisteitä!',
   tryPower: 'Kokeile supervoimaa!',
   jumpPrompt: 'HYPPÄÄ!',
@@ -123,7 +130,14 @@ const en: Dict = {
   module: 'Learning module',
   moduleDone: 'Learning module completed',
   moduleTeaser: 'The upper route hides a learning module (+5 ECTS) and a bonus fact.',
-  signs: { fork: 'Learning module 5 ECTS', pad: 'Jump pad', orb: 'Tap in the ring!' },
+  signs: {
+    fork: 'Learning module 5 ECTS',
+    pad: 'Jump pad',
+    orb: 'Tap in the ring!',
+    speed: 'Speed up!',
+    grav: 'Thermal: jumps carry!',
+    ceiling: 'Mind the ceiling!',
+  },
   noCharge: 'Collect study credits!',
   tryPower: 'Try your superpower!',
   jumpPrompt: 'JUMP!',

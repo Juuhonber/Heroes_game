@@ -3,6 +3,7 @@ import type { Destination } from '../data/destinations';
 import {
   BLOCK,
   GROUND_Y,
+  LOW_GRAVITY,
   MODULE_CREDITS,
   PHYSICS,
   PICKUP_REACH,
@@ -34,7 +35,8 @@ export type SimEvent =
 
 export type RunPhase = 'run' | 'crashed' | 'finished';
 
-type DestinationInput = Pick<Destination, 'id' | 'goalDistance' | 'strength'>;
+type DestinationInput = Pick<Destination, 'id' | 'goalDistance' | 'strength'> &
+  Partial<Pick<Destination, 'level'>>;
 
 /** Tarkistetaan vain lähellä pelaajaa olevat kohteet. */
 const NEAR = 400;
@@ -59,11 +61,15 @@ export class RunSim {
   /** Kulunut todellinen aika sekunteina. */
   time = 0;
   private pending: ('jump' | 'power')[] = [];
+  /** Radan perusnopeus: profiilin tempo kertaa yhteinen perusnopeus. */
+  readonly baseSpeed: number;
 
   /** @param chunks Testejä varten: pakotettu kenttäpalojen järjestys. */
   constructor(destination: DestinationInput, chunks?: string[]) {
     this.level = new Level(destination, chunks);
     this.power = POWER_FOR_STRENGTH[destination.strength];
+    this.baseSpeed = PHYSICS.speed * (destination.level?.speed ?? 1);
+    this.player.speed = this.baseSpeed;
   }
 
   press(action: 'jump' | 'power'): void {
@@ -144,6 +150,9 @@ export class RunSim {
     const prevY = p.y;
     const prevTop = p.y - PLAYER_SIZE.h;
     const wasGrounded = p.onGround;
+    // Nopeus riippuu vain paikasta, joten sijainti on ajan funktio myös
+    // nopeusporttien kanssa.
+    p.speed = this.baseSpeed * level.speedFactorAt(p.worldX);
     p.worldX += p.speed * h;
 
     if (p.mode === 'rocket') {
@@ -178,7 +187,8 @@ export class RunSim {
       }
     }
 
-    p.vy += PHYSICS.gravity * h;
+    const gravity = PHYSICS.gravity * (level.inLowGravity(p.worldX) ? LOW_GRAVITY : 1);
+    p.vy += gravity * h;
     p.y += p.vy * h;
     p.onGround = false;
 
@@ -314,7 +324,7 @@ export class RunSim {
         // kasvavat umpeen. Palikat jäävät, koska ne ovat reittien tasanteita.
         const from = this.player.worldX - PLAYER_SIZE.w;
         const to = this.player.worldX + POWER_TUNING.grow.range;
-        for (const s of this.level.spikes) if (s.x + BLOCK >= from && s.x <= to) s.grown = true;
+        for (const s of this.level.spikes) if (!s.down && s.x + BLOCK >= from && s.x <= to) s.grown = true;
         for (const pit of this.level.pits) if (pit.x + pit.w >= from && pit.x <= to) pit.bridged = true;
         events.push({ type: 'grow', from, to });
         break;

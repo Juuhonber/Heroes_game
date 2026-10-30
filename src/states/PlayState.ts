@@ -366,7 +366,9 @@ export class PlayState implements GameState {
     this.backdrop.drawGround(ctx, camera, this.sim.level.pits);
     this.drawBridges(ctx, camera);
     this.drawGoal(ctx, camera);
+    this.drawGravZones(ctx, camera);
     this.drawBlocks(ctx, camera);
+    this.drawGates(ctx, camera);
     this.drawSpikes(ctx, camera);
     this.drawPads(ctx, camera);
     this.drawOrbs(ctx, camera);
@@ -460,6 +462,11 @@ export class PlayState implements GameState {
         ctx.globalAlpha = 0.18;
         ctx.translate(0, 26);
       }
+      // Kattopiikki osoittaa alas: peilataan pystysuunnassa kiinnityspinnan ympäri.
+      if (s.down) {
+        ctx.translate(0, 2 * s.base);
+        ctx.scale(1, -1);
+      }
       ctx.beginPath();
       ctx.moveTo(x + 4, s.base);
       ctx.lineTo(x + BLOCK / 2, s.base - BLOCK + 4);
@@ -478,6 +485,66 @@ export class PlayState implements GameState {
       ctx.closePath();
       ctx.fillStyle = hexAlpha(accent, 0.25);
       ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  /** Nostetuuli: läpikuultava pylväs, jossa ilma virtaa ylöspäin. */
+  private drawGravZones(ctx: CanvasRenderingContext2D, camera: number): void {
+    for (const zone of this.sim.level.gravZones) {
+      const x = zone.x - camera;
+      if (!this.visible(x, zone.w)) continue;
+      ctx.save();
+      const g = ctx.createLinearGradient(0, 120, 0, GROUND_Y);
+      g.addColorStop(0, 'rgba(255, 211, 110, 0)');
+      g.addColorStop(1, 'rgba(255, 211, 110, 0.22)');
+      ctx.fillStyle = g;
+      ctx.fillRect(x, 120, zone.w, GROUND_Y - 120);
+      ctx.strokeStyle = 'rgba(255, 236, 170, 0.55)';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (let i = 0; i < zone.w / 40; i++) {
+        const lx = x + 20 + i * 40;
+        const ly = GROUND_Y - ((this.elapsed * 260 + i * 97) % (GROUND_Y - 160));
+        ctx.moveTo(lx, ly);
+        ctx.lineTo(lx, ly - 34);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  /** Nopeusportti Geometry Dashin tapaan: korkea kehä ja nuolet. */
+  private drawGates(ctx: CanvasRenderingContext2D, camera: number): void {
+    for (const gate of this.sim.level.gates) {
+      const x = gate.x - camera;
+      if (!this.visible(x - 60, 120)) continue;
+      const fast = gate.factor > 1;
+      const color = fast ? '#ff6fb1' : '#6fe3ff';
+      const cy = GROUND_Y - 170;
+      ctx.save();
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.ellipse(x, cy, 46, 170, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 8;
+      ctx.stroke();
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const arrows = fast ? 2 : 1;
+      for (let i = 0; i < arrows; i++) {
+        const ax = x - 10 + i * 18 + Math.sin(this.elapsed * 8) * 3;
+        ctx.beginPath();
+        ctx.moveTo(ax - 8, cy - 22);
+        ctx.lineTo(ax + 6, cy);
+        ctx.lineTo(ax - 8, cy + 22);
+        ctx.stroke();
+      }
       ctx.restore();
     }
   }
@@ -1012,7 +1079,7 @@ export class PlayState implements GameState {
     ctx.globalAlpha = alpha * 0.8;
     ctx.font = font('body', 30);
     ctx.fillText(
-      `${strings.scenery}: ${localized(this.destination.landmark.name)}`,
+      `${localized(this.destination.level.title)}  ·  ${strings.scenery}: ${localized(this.destination.landmark.name)}`,
       VIRTUAL_W / 2,
       606,
     );

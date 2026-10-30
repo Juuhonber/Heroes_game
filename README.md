@@ -89,14 +89,33 @@ Piikit ja kuopat kaatavat aina. Nopeus on vakio, joten kentän rytmi on
 suunniteltavissa ruudun tarkkuudella.
 
 Rata kootaan käsin suunnitelluista kenttäpaloista (`src/game/chunks.ts`),
-jotka mitataan 60 pikselin ruuduissa. Palat ovat kolmea vaikeustasoa, ja
-niitä valitaan radan edetessä yhä vaikeammista. Jokaisella radalla on:
+jotka mitataan 60 pikselin ruuduissa. Jokaisella radalla on oma luonteensa:
+2–3 omaa kenttäpalaa, joita muilla radoilla ei ole, oma tempo ja oma
+reittivalinta (`level` tiedostossa `destinations.json`). Omat palat
+täyttävät yli puolet radasta; loput ovat yhteisiä palaa vaikeuden mukaan.
+
+| Rata | Tempo | Omat palat | Reittivalinta |
+| --- | --- | --- | --- |
+| SeAMK, Lakeuden kiito | 1,08 | piikkirytmi, ladot, siilo pomppulevyllä | matala tasanne |
+| Thomas More, Porraspäädyt | 0,94 | porraspäädyt, katot kuopan yllä, kellotapuli | portaat ylös |
+| Fontys, Piirilevy | 1,00 | rengasketju, piirilevy, nopeusportti | rengas |
+| UCN, Limvuonon lautat | 1,00 | lautat, laituri ja pomppulevy, satama kattopiikein | matala tasanne |
+| IPBeja, Alentejon nostetuuli | 0,92 | nostetuuli, oliivilehto, linnantorni | nostetuuli |
+| DIT, Baijerin terassit | 1,00 | terassit, pomppulevyketju, metsähypyt | leijuva pomppulevy |
+| Halmstad, Rantakalliot | 1,04 | dyynit, vuorovesialtaat, kallioräystäs | rengas |
+| VIKO, Linnamäki | 1,06 | sakaramuuri, linnamäki renkaalla, Gediminaksen portaat | portaat ylös |
+| MENDELU, Mendelin herneet | 0,97 | viinirivit, herneenpalot, matala kellari | leijuva pomppulevy |
+
+Erityismekaniikat: **nopeusportti** kiihdyttää rajatun osuuden ajaksi,
+**nostetuulessa** painovoima on pienempi ja hyppy kantaa pidemmälle ja
+korkeammalle, **kattopiikit** kieltävät hyppäämisen ja **matala katto**
+lyhentää hyppyä. Jokaisella radalla on:
 
 - ainakin yksi **korkea hyppy**: seinä, joka on normaalia hyppyä korkeampi
-  ja jonka yli pääsee vain pomppulevyllä tai hyppyrenkaalla;
+  ja jonka yli pääsee vain pomppulevyllä, hyppyrenkaalla tai nostetuulessa;
 - täsmälleen yksi **reittivalinta**: alempi reitti on helppo, ylempi on
-  vaikeampi (katkoja, piikkejä, tarkat hypyt) ja sen päässä on
-  **oppimiskokonaisuus** (5 op), joka avaa palautekortille bonusfaktan.
+  vaikeampi ja sen päässä on **oppimiskokonaisuus** (5 op), joka avaa
+  palautekortille bonusfaktan.
 
 Kerättävät ovat **opintopisteitä** (1 op). Osa on juoksulinjalla, osa
 hyppykaarilla. Raketilla oppimiskokonaisuutta ei voi kerätä: se ansaitaan
@@ -217,13 +236,18 @@ voi muuttaa muokkaamalla `VIEW_BOUNDS`-arvoa tiedostossa `src/states/MapState.ts
 
 Tärkein testi etsii jokaiselle radalle voittavan strategian muistiin
 tallentavalla haulla (`tests/helpers.ts`). Haku hyväksyy hypyn vain, jos
-painallus millä tahansa 11 peräkkäisellä ruudulla (183 ms) johtaa voittoon,
+painallus millä tahansa 9 peräkkäisellä ruudulla (150 ms) johtaa voittoon,
 joten jokaisella pääreitin hypyllä on vähintään tämän verran pelivaraa.
 Bonusreitti vaaditaan läpäistäväksi 5 ruudun (83 ms) ikkunalla: se on
 tarkoituksella vaikeampi. Löydetty suunnitelma ajetaan vielä oikealla
 simulaatiolla 50, 60 ja 144 Hz:n ruudunpäivityksellä maaliin asti.
 
-Muut testit tarkistavat jokaisen kenttäpalan erikseen, että korkeiden
+Erilaisuustestit varmistavat, että jokaisen radan omat palat ovat mukana,
+että ne täyttävät yli puolet radasta ja että kahdella radalla on
+korkeintaan kolmannes samoja paloja.
+
+Muut testit tarkistavat jokaisen kenttäpalan erikseen jokaisen sitä
+käyttävän radan tempolla, että korkeiden
 seinien yli ei pääse ilman pomppulevyä tai rengasta, että ylempi reitti on
 alempaa vaikeampi, että alempi reitti mahtuu tasanteiden alta, jokaisen
 supervoiman, opintopisteiden keräämisen, sprite sheet -leikkauksen ja kartan

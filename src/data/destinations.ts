@@ -83,8 +83,17 @@ export interface Destination {
   theme: Theme;
   /** Radan pituus metreinä. */
   goalDistance: number;
-  /** Esteiden tiheyskerroin: 1 = perustaso. */
-  obstacleDensity: number;
+  /** Radan luonne: tempo, reittivalinta ja nimi. */
+  level: LevelProfile;
+}
+
+export interface LevelProfile {
+  /** Juoksunopeuden kerroin perusnopeuteen nähden. */
+  speed: number;
+  /** Reittivalinnan kenttäpala. */
+  fork: string;
+  /** Radan nimi intro- ja palautenäkymään. */
+  title: Localized;
 }
 
 export interface Alliance {

@@ -2,7 +2,7 @@ import { Rng } from '../core/math';
 import type { Rect } from '../core/math';
 import { BLOCK, GROUND_Y, ORB_RADIUS, PIT_EDGE_GRACE, PIXELS_PER_METRE, SPIKE_HITBOX } from './constants';
 import { CHUNKS } from './chunks';
-import type { Chunk } from './chunks';
+import type { Chunk, SignKind } from './chunks';
 import type { Destination } from '../data/destinations';
 
 /** Kiinteä palikka. Koordinaatit ovat ruudun pikseleitä: top on yläpinta. */
@@ -17,8 +17,13 @@ export interface Block {
 
 export interface Spike {
   x: number;
-  /** Pinnan y, jolla piikki seisoo (maa tai palikan yläpinta). */
+  /**
+   * Pinnan y, johon piikki on kiinni: maa tai palikan yläpinta, kattopiikillä
+   * palikan alapinta.
+   */
   base: number;
+  /** Kattopiikki: kärki osoittaa alas. */
+  down: boolean;
   hit: boolean;
   /** Kasvuvoima muutti piikin vaarattomaksi kasviksi. */
   grown: boolean;
@@ -54,10 +59,22 @@ export interface Pickup {
 export interface Sign {
   x: number;
   y: number;
-  kind: 'fork' | 'pad' | 'orb';
+  kind: SignKind;
 }
 
-type LevelInput = Pick<Destination, 'id' | 'goalDistance'>;
+/** Nopeusportti: portista eteenpäin juoksunopeus on perusnopeus × factor. */
+export interface SpeedGate {
+  x: number;
+  factor: number;
+}
+
+/** Nostetuulivyöhyke: painovoima on pienempi. */
+export interface GravZone {
+  x: number;
+  w: number;
+}
+
+type LevelInput = Pick<Destination, 'id' | 'goalDistance'> & Partial<Pick<Destination, 'level'>>;
 
 /**
  * Rata kootaan kenttäpaloista kohteen id:stä johdetulla siemenellä, joten
@@ -73,9 +90,13 @@ export class Level {
   readonly orbs: Orb[] = [];
   readonly pickups: Pickup[] = [];
   readonly signs: Sign[] = [];
+  readonly gates: SpeedGate[] = [];
+  readonly gravZones: GravZone[] = [];
   readonly goalX: number;
   /** Kenttäpalojen nimet järjestyksessä (testit ja vianetsintä). */
   readonly layout: string[] = [];
+  /** Palojen alkukohdat maailman pikseleinä (vianetsintä ja kuvakaappaukset). */
+  readonly segments: { name: string; x: number }[] = [];
 
   /**
    * @param forced Testejä varten: rakentaa radan juuri näistä paloista
@@ -89,8 +110,6 @@ export class Level {
     const seenSigns = new Set<string>();
 
     let cursor = 24;
-    let forkPlaced = false;
-    let higherPlaced = false;
     let previous = '';
 
     const place = (chunk: Chunk): void => {
@@ -103,21 +122,17 @@ export class Level {
         this.add(item, cursor);
       }
       this.layout.push(chunk.name);
+      this.segments.push({ name: chunk.name, x: cursor * BLOCK });
       previous = chunk.name;
       // Tauko palojen välissä: laskeutuminen ja uusi rytmi mahtuvat väliin.
-      cursor += chunk.length + rng.int(3, 5);
+      cursor += chunk.length + rng.int(5, 7);
     };
 
+    const fits = (c: Chunk): boolean => cursor + c.length <= goalBlocks - endMargin;
     const pick = (pool: Chunk[]): Chunk | undefined => {
-      const options = pool.filter((c) => c.name !== previous && cursor + c.length <= goalBlocks - endMargin);
+      const options = pool.filter((c) => c.name !== previous && fits(c));
       return options.length > 0 ? rng.pick(options) : undefined;
     };
-
-    const easy = CHUNKS.filter((c) => c.difficulty === 1 && !c.fork && !c.higher);
-    const medium = CHUNKS.filter((c) => c.difficulty === 2 && !c.fork && !c.higher);
-    const hard = CHUNKS.filter((c) => c.difficulty === 3);
-    const higher = CHUNKS.filter((c) => c.higher);
-    const forks = CHUNKS.filter((c) => c.fork);
 
     if (forced) {
       for (const name of forced) {
@@ -128,29 +143,66 @@ export class Level {
       return;
     }
 
-    // Kaksi helppoa palaa alkuun: pelaaja oppii hypyn ennen kuin rata tihenee.
-    for (let i = 0; i < 2; i++) {
-      const chunk = pick(easy);
-      if (chunk) place(chunk);
+    /*
+     * Jokaisella radalla on oma luonteensa: sen omat palat (owner) käytetään
+     * kaikki, vuorotellen yhteisten palojen kanssa, ja reittivalinta tulee
+     * radan profiilista. Yhteiset palat valitaan vaikeuden mukaan.
+     */
+    const forkName = destination.level?.fork ?? 'fork-orb';
+    const fork = CHUNKS.find((c) => c.name === forkName);
+    if (!fork?.fork) throw new Error(`Tuntematon reittivalinta: ${forkName}`);
+    const own = CHUNKS.filter((c) => c.owner === destination.id && !c.fork);
+    const shared = CHUNKS.filter((c) => !c.owner && !c.fork);
+    const easy = shared.filter((c) => c.difficulty === 1 && !c.higher);
+    const medium = shared.filter((c) => c.difficulty === 2 && !c.higher);
+    const hard = shared.filter((c) => c.difficulty === 3 && !c.higher);
+    const higher = shared.filter((c) => c.higher);
+
+    const queue = [...own];
+    for (let i = queue.length - 1; i > 0; i--) {
+      const j = rng.int(0, i);
+      [queue[i], queue[j]] = [queue[j]!, queue[i]!];
     }
+    // Oma korkea hyppy ei tule heti alkuun.
+    queue.sort((a, b) => Number(Boolean(a.higher)) - Number(Boolean(b.higher)));
+    let higherPlaced = own.some((c) => c.higher);
+    let forkPlaced = false;
+    let turn = 0;
+
+    const takeOwn = (): Chunk | undefined => {
+      const next = queue.findIndex(fits);
+      if (next >= 0) return queue.splice(next, 1)[0];
+      return queue.length === 0 ? pick(own) : undefined;
+    };
+    const takeShared = (progress: number): Chunk | undefined => {
+      const roll = rng.next();
+      const pool = progress < 0.3 ? (roll < 0.5 ? easy : medium) : progress < 0.65 ? medium : roll < 0.55 ? hard : medium;
+      return pick(pool) ?? pick(shared);
+    };
+
+    const intro = pick(easy);
+    if (intro) place(intro);
 
     while (cursor < goalBlocks - endMargin) {
       const progress = cursor / goalBlocks;
+      const room = goalBlocks - endMargin - cursor;
+      const ownLeft = queue.reduce((sum, c) => sum + c.length + 6, 0);
       let chunk: Chunk | undefined;
-      if (!forkPlaced && progress >= 0.42) {
-        chunk = pick(forks);
-        if (chunk) forkPlaced = true;
+      if (!forkPlaced && progress >= 0.42 && fits(fork)) {
+        chunk = fork;
+        forkPlaced = true;
       } else if (!higherPlaced && progress >= 0.22) {
         chunk = pick(higher);
-        if (chunk) higherPlaced = true;
-      } else if (progress < 0.3) {
-        chunk = pick(rng.next() < 0.5 ? easy : medium);
-      } else if (progress < 0.65) {
-        chunk = pick(rng.next() < 0.2 ? higher : medium);
+        higherPlaced = Boolean(chunk);
       } else {
-        const roll = rng.next();
-        chunk = pick(roll < 0.45 ? hard : roll < 0.65 ? higher : medium);
+        // Omat ja yhteiset palat vuorotellen; jos tila käy vähiin, omat ensin,
+        // jotta radan luonne säilyy.
+        const forkReserve = forkPlaced ? 0 : fork.length + 6;
+        const ownFirst = turn % 2 === 0 || room - forkReserve <= ownLeft + 20;
+        chunk = ownFirst ? (takeOwn() ?? takeShared(progress)) : (takeShared(progress) ?? takeOwn());
+        turn += 1;
       }
+      if (!chunk) chunk = pick([...own, ...shared]);
       if (!chunk) break;
       place(chunk);
     }
@@ -160,7 +212,17 @@ export class Level {
     const x = (originBlocks + item.x) * BLOCK;
     switch (item.t) {
       case 'spike':
-        this.spikes.push({ x, base: GROUND_Y - item.y * BLOCK, hit: false, grown: false });
+        this.spikes.push({ x, base: GROUND_Y - item.y * BLOCK, down: false, hit: false, grown: false });
+        break;
+      case 'cspike':
+        this.spikes.push({ x, base: GROUND_Y - item.y * BLOCK, down: true, hit: false, grown: false });
+        break;
+      case 'speed':
+        this.gates.push({ x, factor: item.factor });
+        this.gates.sort((a, b) => a.x - b.x);
+        break;
+      case 'grav':
+        this.gravZones.push({ x, w: item.w * BLOCK });
         break;
       case 'block':
         this.blocks.push({
@@ -207,10 +269,24 @@ export class Level {
   spikeRect(s: Spike): Rect {
     return {
       x: s.x + SPIKE_HITBOX.inset,
-      y: s.base - BLOCK + SPIKE_HITBOX.top,
+      y: s.down ? s.base : s.base - BLOCK + SPIKE_HITBOX.top,
       w: BLOCK - SPIKE_HITBOX.inset * 2,
       h: BLOCK - SPIKE_HITBOX.top,
     };
+  }
+
+  /** Nopeuskerroin kohdassa x: viimeisimmän ohitetun portin arvo. */
+  speedFactorAt(worldX: number): number {
+    let factor = 1;
+    for (const gate of this.gates) {
+      if (gate.x > worldX) break;
+      factor = gate.factor;
+    }
+    return factor;
+  }
+
+  inLowGravity(worldX: number): boolean {
+    return this.gravZones.some((z) => worldX >= z.x && worldX <= z.x + z.w);
   }
 
   orbTouches(orb: Orb, box: Rect): boolean {

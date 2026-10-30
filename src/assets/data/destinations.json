@@ -59,8 +59,15 @@
         "groundDark": "#0a4b44",
         "accent": "#f2e85c"
       },
-      "goalDistance": 560,
-      "obstacleDensity": 1
+      "goalDistance": 780,
+      "level": {
+        "speed": 1.08,
+        "fork": "fork-low",
+        "title": {
+          "fi": "Lakeuden kiito",
+          "en": "Sprint across the plains"
+        }
+      }
     },
     {
       "id": "thomasmore",
@@ -109,8 +116,15 @@
         "groundDark": "#241640",
         "accent": "#ffd166"
       },
-      "goalDistance": 600,
-      "obstacleDensity": 1.05
+      "goalDistance": 760,
+      "level": {
+        "speed": 0.94,
+        "fork": "fork-high",
+        "title": {
+          "fi": "Porraspäädyt",
+          "en": "Stepped gables"
+        }
+      }
     },
     {
       "id": "fontys",
@@ -159,8 +173,15 @@
         "groundDark": "#0e2c3e",
         "accent": "#6fe3ff"
       },
-      "goalDistance": 620,
-      "obstacleDensity": 1.1
+      "goalDistance": 800,
+      "level": {
+        "speed": 1.0,
+        "fork": "fork-orb",
+        "title": {
+          "fi": "Piirilevy",
+          "en": "Circuit board"
+        }
+      }
     },
     {
       "id": "ucn",
@@ -209,8 +230,15 @@
         "groundDark": "#8f7a55",
         "accent": "#ffe9a8"
       },
-      "goalDistance": 540,
-      "obstacleDensity": 0.95
+      "goalDistance": 760,
+      "level": {
+        "speed": 1.0,
+        "fork": "fork-low",
+        "title": {
+          "fi": "Limvuonon lautat",
+          "en": "Limfjord ferries"
+        }
+      }
     },
     {
       "id": "ipbeja",
@@ -259,8 +287,15 @@
         "groundDark": "#84592a",
         "accent": "#ffd36e"
       },
-      "goalDistance": 580,
-      "obstacleDensity": 1
+      "goalDistance": 720,
+      "level": {
+        "speed": 0.92,
+        "fork": "fork-thermal",
+        "title": {
+          "fi": "Alentejon nostetuuli",
+          "en": "Alentejo thermals"
+        }
+      }
     },
     {
       "id": "thdeg",
@@ -309,8 +344,15 @@
         "groundDark": "#1c4c33",
         "accent": "#9ef0b4"
       },
-      "goalDistance": 640,
-      "obstacleDensity": 1.15
+      "goalDistance": 820,
+      "level": {
+        "speed": 1.0,
+        "fork": "fork-pad",
+        "title": {
+          "fi": "Baijerin terassit",
+          "en": "Bavarian terraces"
+        }
+      }
     },
     {
       "id": "halmstad",
@@ -359,8 +401,15 @@
         "groundDark": "#a08a5c",
         "accent": "#ffe6a0"
       },
-      "goalDistance": 600,
-      "obstacleDensity": 1.05
+      "goalDistance": 780,
+      "level": {
+        "speed": 1.04,
+        "fork": "fork-orb",
+        "title": {
+          "fi": "Rantakalliot",
+          "en": "Coastal cliffs"
+        }
+      }
     },
     {
       "id": "viko",
@@ -409,8 +458,15 @@
         "groundDark": "#432622",
         "accent": "#ffb4a2"
       },
-      "goalDistance": 620,
-      "obstacleDensity": 1.1
+      "goalDistance": 800,
+      "level": {
+        "speed": 1.06,
+        "fork": "fork-high",
+        "title": {
+          "fi": "Linnamäki",
+          "en": "Castle hill"
+        }
+      }
     },
     {
       "id": "mendelu",
@@ -459,8 +515,15 @@
         "groundDark": "#2a4526",
         "accent": "#d7f06a"
       },
-      "goalDistance": 660,
-      "obstacleDensity": 1.2
+      "goalDistance": 820,
+      "level": {
+        "speed": 0.97,
+        "fork": "fork-pad",
+        "title": {
+          "fi": "Mendelin herneet",
+          "en": "Mendel's peas"
+        }
+      }
     }
   ]
 }

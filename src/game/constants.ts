@@ -26,6 +26,9 @@ export const PHYSICS = {
   maxSubstep: 1 / 240,
 };
 
+/** Nostetuulivyöhykkeellä painovoima on tämä osa normaalista: hyppy kantaa pidemmälle ja korkeammalle. */
+export const LOW_GRAVITY = 0.6;
+
 export const JUMP_AIRTIME = (2 * -PHYSICS.jumpVelocity) / PHYSICS.gravity;
 export const JUMP_APEX = (PHYSICS.jumpVelocity * PHYSICS.jumpVelocity) / (2 * PHYSICS.gravity);
 export const PAD_APEX = (PHYSICS.padVelocity * PHYSICS.padVelocity) / (2 * PHYSICS.gravity);
